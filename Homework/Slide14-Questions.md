@@ -5,10 +5,10 @@
 * __Dataproc:__ provides you with a Hadoop Cluster and access to Apache Hadoop / Spark ecosystem. Indicated when the manual provisioning of clusters is necessary (as seen before, GD does it automatically) OR when there are dependencies to tools belonging to the aforementioned ecosystem.
 
 ### 2. Understand how a pipeline is created
-
+*TODO*
 
 ### 3. Understand the learning task
-
+*TODO*
 
 ### 4. Understand the contents of each script in the pipeline
 * `data-extractor.py`: Downloads the SDF files.
@@ -40,18 +40,46 @@ Estimators encapsulate the following actions:
 
 ### 6. Run the pipeline as is locally (run-local) and in the cloud (run-cloud) (are there any differences in performance?)
 
-For smaller datasets, running them locally is much faster than running them on the cloud (makes sense as the communicaton with the cloud inuces overhead). However, to larger datasets, the local machine becomes slower than the cloud, since the cloud resources surpass the local machine resources. (**To check later**)
+For smaller datasets, running them locally is much faster than running them on the cloud (makes sense as the communicaton with the cloud inuces overhead). However, to larger datasets, the local machine becomes slower than the cloud, since the cloud resources surpass the local machine resources. (**To check later, now that im rethinking, it will always be faster in laptop?? check..**)
+
+*NEEDS REVISION*
 
 ### 7. Vary the max-data-files parameter with values 10, 100, 1000
-* `./run-local --max-data-files 10`:
-* `./run-local --max-data-files 100`:
-* `./run-local --max-data-files 1000`:
+* `./run-local --max-data-files 10`
+```
+{"id": 100001, "predictions": [52.15007781982422]}
+{"id": 100003, "predictions": [85.49195098876953]}
+{"id": 100004, "predictions": [69.68114471435547]}
+{"id": 100005, "predictions": [55.056121826171875]}
+{"id": 100006, "predictions": [62.0178108215332]}
+{"id": 100007, "predictions": [76.23307800292969]}
+{"id": 100008, "predictions": [27.15519905090332]}
+{"id": 100010, "predictions": [35.23750305175781]}
+{"id": 100015, "predictions": [35.748111724853516]}
+{"id": 100016, "predictions": [33.944026947021484]}
+```
+
+* `./run-local --max-data-files 100`
+```
+{"id": 375001, "predictions": [64.0418701171875]}
+{"id": 375002, "predictions": [58.79254913330078]}
+{"id": 375003, "predictions": [69.9582748413086]}
+{"id": 375004, "predictions": [71.39855194091797]}
+{"id": 375005, "predictions": [45.28623580932617]}
+{"id": 375006, "predictions": [45.28623580932617]}
+{"id": 375007, "predictions": [45.28623580932617]}
+{"id": 375008, "predictions": [49.62617874145508]}
+{"id": 375009, "predictions": [49.62617874145508]}
+{"id": 375010, "predictions": [53.8374137878418]}
+```
+
+* `./run-local --max-data-files 1000`
 
 ### 8. Modify this program to include the actual ENERGY of each molecule in the predictions file
-
+*TODO*
 
 ### 9. Modify this program to allow for cross-validation
-
+*TODO*
 
 ***
 
