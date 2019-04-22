@@ -25,9 +25,22 @@
 
 ### 5. Understand how to use transformations and estimators in Tensorflow
 
+**TensorFlow Transformations** are great for preprocessing input data for TensorFlow, including creating features that require a full pass over the training dataset.
+
+In the molecules example a Transform is used to make a full pass over the dataset and find the maximum and minimum count of molecules, using then the computed values to normalize the input data.
+
+
+**Tensroflow Estimators** base themselves on the Estimator class, which wraps a model which is specified by a model function, which, given inputs and a number of other parameters, returns the operations necessary to perform training, evaluation, or predictions.
+
+Estimators encapsulate the following actions:
+* training
+* evaluation
+* prediction
+* export for serving
 
 ### 6. Run the pipeline as is locally (run-local) and in the cloud (run-cloud) (are there any differences in performance?)
 
+For smaller datasets, running them locally is much faster than running them on the cloud (makes sense as the communicaton with the cloud inuces overhead). However, to larger datasets, the local machine becomes slower than the cloud, since the cloud resources surpass the local machine resources. (**To check later**)
 
 ### 7. Vary the max-data-files parameter with values 10, 100, 1000
 * `./run-local --max-data-files 10`:
@@ -44,3 +57,6 @@
 
 ### Helpful links:
 * https://cloud.google.com/dataflow/docs/samples/molecules-walkthrough
+* https://www.tensorflow.org/tfx/transform/tutorials/TFT_simple_example
+* https://www.tensorflow.org/tutorials/estimators/linear
+* https://www.tensorflow.org/guide/estimators
