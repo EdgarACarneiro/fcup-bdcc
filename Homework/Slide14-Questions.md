@@ -57,7 +57,7 @@ Estimators encapsulate the following actions:
 
 ### 6. Run the pipeline as is locally (run-local) and in the cloud (run-cloud) (are there any differences in performance?)
 
-For smaller datasets, running them locally is much faster than running them on the cloud (makes sense as the communicaton with the cloud inuces overhead). However, to larger datasets, the local machine becomes slower than the cloud, since the cloud resources surpass the local machine resources. 
+For smaller datasets, running them locally is much faster than running them on the cloud (makes sense as the communicaton with the cloud induces overhead). However, to larger datasets, the local machine becomes slower than the cloud, since the cloud resources surpass the local machine resources. 
 
 ### 7. Vary the max-data-files parameter with values 10, 100, 1000
 * `./run-local --max-data-files 10`
