@@ -94,8 +94,14 @@ For smaller datasets, running them locally is much faster than running them on t
 *TODO*
 
 ### 9. Modify this program to allow for cross-validation
-First, lets introduce the program variable `num_splits`. This variable is naturally related to the `eval_percent` variable.
-
+First, lets introduce the optional argument variable `num_splits`. This variable is naturally related to the `eval_percent` variable.
+```python
+def run(
+    ...
+    num_splits=5,
+    eval_percent=20.0,
+    ...):
+```
 Then, we must alter the section of the code responsible for the Split of the dataset into a training set and an evaluation set. Previous dataset divison:
 ```python
 train_dataset, eval_dataset = (
