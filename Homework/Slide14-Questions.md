@@ -14,7 +14,7 @@ To construct a pipeline, the program performs the following general steps:
 ` beam.io.Read(pubchem.ParseSDF(data_files_pattern))`
 - Applies transforms to each PCollection. Transforms can change, filter, group, analyze, or otherwise process the elements in a PCollection. Each transform creates a new output PCollection, to which we can apply additional transforms until processing is complete.
 
-```
+```python
  | 'Feature extraction' >> feature_extraction`
  | 'Predict' >> beam.ParDo(Predict(model_dir, 'ID'))
  | 'Format as JSON' >> beam.Map(json.dumps)
@@ -61,7 +61,7 @@ For smaller datasets, running them locally is much faster than running them on t
 
 ### 7. Vary the max-data-files parameter with values 10, 100, 1000
 * `./run-local --max-data-files 10`
-```
+```python
 {"id": 100001, "predictions": [52.15007781982422]}
 {"id": 100003, "predictions": [85.49195098876953]}
 {"id": 100004, "predictions": [69.68114471435547]}
@@ -75,7 +75,7 @@ For smaller datasets, running them locally is much faster than running them on t
 ```
 
 * `./run-local --max-data-files 100`
-```
+```python
 {"id": 375001, "predictions": [64.0418701171875]}
 {"id": 375002, "predictions": [58.79254913330078]}
 {"id": 375003, "predictions": [69.9582748413086]}
@@ -94,10 +94,30 @@ For smaller datasets, running them locally is much faster than running them on t
 *TODO*
 
 ### 9. Modify this program to allow for cross-validation
-https://stackoverflow.com/questions/38164798/does-tensorflow-have-cross-validation-implemented-for-its-users?rq=1 - use this link
+First, lets introduce the program variable `num_splits`. This variable is naturally related to the `eval_percent` variable.
 
-*TODO*
-
+Then, we must alter the section of the code responsible for the Split of the dataset into a training set and an evaluation set. Previous dataset divison:
+```python
+train_dataset, eval_dataset = (
+    dataset
+    | 'Split dataset' >> beam.Partition(
+        lambda elem, _: int(random.uniform(0, 100) < eval_percent), 2))
+```
+Dataset division that allows cross-validation:
+```python
+splits = (
+    dataset
+    | 'Split dataset for cross validation' >> beam.Partition(
+        lambda elem, _: int(random.uniform(0, num_splits-1)), num_splits))
+```
+Next we must run the algorithm with different possibilities of training dataset and evaluation dataset resulting from the splits:
+```python
+for split in splits:
+    train_dataset = #Union of all the PCollections of splits except split
+    eval_dataset = split
+ 
+    ...
+```
 ***
 
 ### Helpful links:
