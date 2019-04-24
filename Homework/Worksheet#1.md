@@ -15,8 +15,8 @@ Yes it does, since there are contexts and problems were both approaches can be u
 There are several advantages of map-reduce over parallel and distributed databases, namely:
 * **Inferior data loading time**, since there isn't any kind of preprocessing of the data, whilst there is on parallel and distributed databases;
 * **More fault-tolerant** then its counterpart, as seen in [1];
-* **Open-source implementatoins**, while the major set of parallel and distributed databases are very expensive;
-* **No schema is enforced**, as the data does not need to follow any kind of schema;
+* **Open-source implementations**, while the major set of parallel and distributed databases are very expensive;
+* **No schema is enforced**, as the data does not need to follow any kind of schema which can be good in _(See in paper the situation)_
 * **Allows for more complex data interrogation** while in parallel and distributed databases the SQL language can be a restriction in the type of queries that can be made.
 
 ### 3) What are the advantages of parallel and distributed databases over map-reduce?
@@ -29,10 +29,20 @@ There are several advantages of parallel and distributed databases over map-redu
 * **Easier parameter tunning**, _(See where this stuff is)_
 
 ### 4) What kind of operations are allowed in parallel and distributed databases that are not available “out-of-the-box” in map-reduce?
+Represented as subset of the advantages previously presented, the operations that are allowed in parallel and distributed databases that are not available “out-of-the-box” in map-reduce are:
+* **Use of indexes**;
+* **Automatic optimizations**; _(Check this one, if it works in all)_
+* **Works with compressed data**; _(Check this one as well)_
+* **Schema**.
 
 ### 5) What kind of operations are allowed in map-reduce that are not available “out-of-the-box” in parallel and distributed databases?
+Represented as subset of the advantages previously presented, the operations that are allowed in map-reduce that are not available “out-of-the-box” in parallel and distributed databases are:
+* **Fault-tolerance**;
+* **No Schema**.
 
 ### 6) Are there alternatives to Google’s mapreduce? How do they perform?
+Some alternatives to Google's mapreduce are:
+* **Hadoop**:
 
 ### 7) Search the web for parallel and distributed databases. In which situations would be interesting to use such solutions instead of using google’s mapreduce solution?
 
