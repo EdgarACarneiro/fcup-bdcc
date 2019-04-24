@@ -94,6 +94,8 @@ For smaller datasets, running them locally is much faster than running them on t
 *TODO*
 
 ### 9. Modify this program to allow for cross-validation
+https://stackoverflow.com/questions/38164798/does-tensorflow-have-cross-validation-implemented-for-its-users?rq=1 - use this link
+
 *TODO*
 
 ***
