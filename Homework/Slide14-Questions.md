@@ -11,10 +11,11 @@ To construct a pipeline, the program performs the following general steps:
 `with beam.Pipeline(options=beam_options) as p`
 - Uses a Read transform to create a PCollections for our pipeline data from an external source.
 
-`| 'Feature extraction' >> feature_extraction`
+` beam.io.Read(pubchem.ParseSDF(data_files_pattern))`
 - Applies transforms to each PCollection. Transforms can change, filter, group, analyze, or otherwise process the elements in a PCollection. Each transform creates a new output PCollection, to which we can apply additional transforms until processing is complete.
 
 ```
+`| 'Feature extraction' >> feature_extraction`
  | 'Predict' >> beam.ParDo(Predict(model_dir, 'ID'))
  | 'Format as JSON' >> beam.Map(json.dumps)
 ```
