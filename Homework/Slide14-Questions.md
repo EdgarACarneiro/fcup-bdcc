@@ -5,23 +5,22 @@
 * __Dataproc:__ provides you with a Hadoop Cluster and access to Apache Hadoop / Spark ecosystem. Indicated when the manual provisioning of clusters is necessary (as seen before, GD does it automatically) OR when there are dependencies to tools belonging to the aforementioned ecosystem.
 
 ### 2. Understand how a pipeline is created
-To construct a pipeline using the classes in the Beam SDKs, the program will need to perform the following general steps:
-- Create a Pipeline object. 
+To construct a pipeline, the program performs the following general steps:
+- Creates a Pipeline object. 
 
-`Pipeline p = Pipeline.create(options);`
-- Use a Read (in order to read data from an external source) or Create (in order to create a PCollection from an in-memory Collection) transform to create one or more PCollections for our pipeline data. 
+`with beam.Pipeline(options=beam_options) as p`
+- Uses a Read transform to create a PCollections for our pipeline data from an external source.
 
-`PCollection<String> lines = p.apply("ReadLines", TextIO.read().from("gs://some/inputData.txt"));`
-- Apply transforms to each PCollection. Transforms can change, filter, group, analyze, or otherwise process the elements in a PCollection. Each transform creates a new output PCollection, to which we can apply additional transforms until processing is complete.
+`| 'Feature extraction' >> feature_extraction`
+- Applies transforms to each PCollection. Transforms can change, filter, group, analyze, or otherwise process the elements in a PCollection. Each transform creates a new output PCollection, to which we can apply additional transforms until processing is complete.
 
-`PCollection<String> reversedLines = lines.apply(new ReverseLines());`
-- Write or otherwise output the final, transformed PCollections.
+```
+ | 'Predict' >> beam.ParDo(Predict(model_dir, 'ID'))
+ | 'Format as JSON' >> beam.Map(json.dumps)
+```
+- Write the final output, transformed PCollections.
 
-`reversedLines.apply("WriteMyFile", TextIO.write().to("gs://some/outputData.txt"));`
-- Run the pipeline.
-
-`p.run();`
-
+` | 'Write predictions' >> sink)`
 
 ### 3. Understand the learning task
 *TODO*
