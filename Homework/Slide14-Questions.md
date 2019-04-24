@@ -19,6 +19,7 @@ To construct a pipeline using the classes in the Beam SDKs, the program will nee
 
 `reversedLines.apply("WriteMyFile", TextIO.write().to("gs://some/outputData.txt"));`
 - Run the pipeline.
+
 `p.run();`
 
 
