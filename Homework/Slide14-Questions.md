@@ -24,7 +24,8 @@ To construct a pipeline, the program performs the following general steps:
 ` | 'Write predictions' >> sink)`
 
 ### 3. Understand the learning task
-*TODO*
+The Molecules code sample extracts files that contain molecular data and counts the number of carbon, hydrogen, oxygen, and nitrogen atoms are in each molecule. Then, the code normalizes the counts to values between 0 and 1, and feeds the values into a TensorFlow Deep Neural Network estimator. 
+The Estimator uses the training dataset to train the model, and then uses the evaluation dataset to verify that the model accurately predicts molecular energy given some of the molecule’s properties.
 
 ### 4. Understand the contents of each script in the pipeline
 * `data-extractor.py`: Downloads the SDF files.
