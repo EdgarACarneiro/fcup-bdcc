@@ -9,7 +9,8 @@ Based on the following papers:
 ## Questions
 
 ### 1) Does it make sense comparing map-reduce approaches with parallel and distributed database systems? Explain your answer.
-Yes it does, since there are contexts and problems were both approaches can be used, each one bringing its advantages and disavantages to the problem at hand. _(See if there is any example on papers)_
+Yes it does, both techniques try to entail the harnessing of parallel work in order to solve computing problems. 
+There are contexts and problems were both approaches can be used, each one bringing its advantages and disavantages to the problem at hand - Let's take as example the problem of dealing with the enourmous amount of data that Facebook collects.
 
 ### 2) What are the advantages of map-reduce over parallel and distributed databases?
 There are several advantages of map-reduce over parallel and distributed databases, namely:
