@@ -23,17 +23,16 @@ There are several advantages of map-reduce over parallel and distributed databas
 
 ### 3) What are the advantages of parallel and distributed databases over map-reduce?
 There are several advantages of parallel and distributed databases over map-reduce, namely:
-* **Use of indexes** greatly improving query time when compared to the map-reduce approach; _(Speak about Vectoria and the column based stuff)_
+* **Use of indexes** greatly improving query time when compared to the map-reduce approach;
 * **Works with compressed data**, making the nodes access to data faster;
 * **Automatic optimizations in task distribution** - the system would distrbute tasks in such way that the flux of data between nodes is minimized; 
 * **Schema is enforced** which pushes programmers to a higher, more-productive level of abstraction.
 * **Faster data interrogation**, complex queries in the map-reduce approach are simplified by the usage of the SQL language.
-* **Easier parameter tunning**, _(See where this stuff is)_
 
 ### 4) What kind of operations are allowed in parallel and distributed databases that are not available “out-of-the-box” in map-reduce?
 Represented as subset of the advantages previously presented, the operations that are allowed in parallel and distributed databases that are not available “out-of-the-box” in map-reduce are:
 * **Use of indexes**;
-* **Automatic optimizations**; _(Check this one, if it works in all)_
+* **Automatic optimizations ins task distribution**;
 * **Works with compressed data**;
 * **Schema**.
 
