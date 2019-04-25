@@ -91,7 +91,27 @@ For smaller datasets, running them locally is much faster than running them on t
 * `./run-local --max-data-files 1000`
 
 ### 8. Modify this program to include the actual ENERGY of each molecule in the predictions file
-*TODO*
+Changes on prediction.py
+```
+yield {
+ 'id': inputs[self.id_key],
+ 'predictions': results[self.meta_predictions][0].tolist(),
+ 'actualEnergy': inputs['Energy'] # New Entry
+ }
+```
+Output:
+```
+{"id": 25002, "actualEnergy": 33.6141, "predictions": [24.72126007080078]}
+{"id": 25003, "actualEnergy": 11.5619, "predictions": [8.44851016998291]}
+{"id": 25004, "actualEnergy": 28.495, "predictions": [24.67938995361328]}
+{"id": 25005, "actualEnergy": 19.6646, "predictions": [14.54765510559082]}
+{"id": 25006, "actualEnergy": 10.6814, "predictions": [9.66574478149414]}
+{"id": 25008, "actualEnergy": 20.2605, "predictions": [14.377355575561523]}
+{"id": 25009, "actualEnergy": 16.3172, "predictions": [16.26948356628418]}
+{"id": 25010, "actualEnergy": 14.0353, "predictions": [27.049715042114258]}
+{"id": 25011, "actualEnergy": 18.0687, "predictions": [8.839911460876465]}
+{"id": 25012, "actualEnergy": 74.887, "predictions": [55.38291549682617]}
+```
 
 ### 9. Modify this program to allow for cross-validation
 First, lets introduce the optional argument variable `num_splits`. This variable is naturally related to the `eval_percent` variable.
