@@ -17,7 +17,7 @@ There are several advantages of map-reduce over parallel and distributed databas
 * **Inferior data loading time**, since there isn't any kind of preprocessing of the data, whilst there is on parallel and distributed databases;
 * **More fault-tolerant** then its counterpart, as seen in [1];
 * **Open-source implementations**, while the major set of parallel and distributed databases are very expensive;
-* **No schema is enforced**, as the data does not need to follow any kind of schema which can be good in _(See in paper the situation)_
+* **No schema is enforced**, as the data does not need to follow any kind of schema which can be good in cases of semi-structured data.
 * **Allows for more complex data interrogation** while in parallel and distributed databases the SQL language can be a restriction in the type of queries that can be made.
 
 ### 3) What are the advantages of parallel and distributed databases over map-reduce?
