@@ -92,7 +92,7 @@ For smaller datasets, running them locally is much faster than running them on t
 
 ### 8. Modify this program to include the actual ENERGY of each molecule in the predictions file
 Changes on prediction.py
-```
+```python
 yield {
  'id': inputs[self.id_key],
  'predictions': results[self.meta_predictions][0].tolist(),
@@ -100,7 +100,7 @@ yield {
  }
 ```
 Output:
-```
+```python
 {"id": 25002, "actualEnergy": 33.6141, "predictions": [24.72126007080078]}
 {"id": 25003, "actualEnergy": 11.5619, "predictions": [8.44851016998291]}
 {"id": 25004, "actualEnergy": 28.495, "predictions": [24.67938995361328]}
@@ -134,7 +134,7 @@ Dataset division that allows cross-validation:
 splits = (
     dataset
     | 'Split dataset for cross validation' >> beam.Partition(
-        lambda elem, _: int(random.uniform(0, num_splits-1)), num_splits))
+        lambda elem, _: int(random.uniform(0, num_splits)), num_splits))
 ```
 Next we must run the algorithm with different possibilities of training dataset and evaluation dataset resulting from the splits:
 ```python
