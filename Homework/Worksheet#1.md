@@ -19,8 +19,7 @@ There are several advantages of map-reduce over parallel and distributed databas
 * **Open-source implementations**, while the major set of parallel and distributed databases are very expensive;
 * **No schema is enforced**, as the data does not need to follow any kind of schema which can be good in cases of semi-structured data.
 * **Allows for more complex data interrogation** while in parallel and distributed databases the SQL language can be a restriction in the type of queries that can be made.
-* **Excel at complex analytics and ETL tasks**
-* **Driven by a large open source community**
+* **Excel at complex analytics and ETL tasks**.
 
 ### 3) What are the advantages of parallel and distributed databases over map-reduce?
 There are several advantages of parallel and distributed databases over map-reduce, namely:
@@ -49,7 +48,7 @@ Some alternatives to Google's mapreduce are:
 * **Apache CouchDB**;
 * **Disco**;
 * **Infinispan**;
-* **Riak**
+* **Riak**.
 
 In general they perform Ok. Apache Hadoop is the most popular at the time of writing.
 
