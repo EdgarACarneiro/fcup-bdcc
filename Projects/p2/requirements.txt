@@ -1,3 +1,5 @@
 google-cloud-dataflow
 google-cloud-datastore
-apache-beam[gcp]
+apache-beam[gcp]==2.5
+tensorflow-transform==0.8
+tensorflow==1.8
