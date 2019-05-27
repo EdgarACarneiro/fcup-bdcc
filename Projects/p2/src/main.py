@@ -2,6 +2,8 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
 
+"""Your task is to perform a statistical analysis on this data
+and produce timeline graphs for each patient (SUBJECT_ID)"""
 
 # https://medium.com/@brunoripa/apache-beam-a-python-example-5644ca4ed581
 class Filter(beam.DoFn):
@@ -55,5 +57,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-i', '--input_file', required=True,
                         help='Input csv file containing the data')
+    parser.add_argument('-o', '--output_folder', default='',
+                    help='Output folder for the generated plots')
+    parser.add_argument('-p', '--patient', required=True,
+                    help='Patient that will analysed')
 
     run(parser.parse_args())
