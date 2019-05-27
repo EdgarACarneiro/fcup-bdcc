@@ -2,6 +2,8 @@ import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
 
+from extractors import ValuesPerTime as vpt
+
 """Your task is to perform a statistical analysis on this data
 and produce timeline graphs for each patient (SUBJECT_ID)"""
 
@@ -45,9 +47,11 @@ def run(args):
                 FilterPatient(args.patient))
         )
 
-        print_collection(patient_data)
+        # print_collection(patient_data)
 
         # Call different implemented extractors here
+        vpt.ValuesPerTime("test").extract(patient_data, args.output_folder)
+
 
 
 if __name__ == '__main__':

@@ -1,17 +1,16 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 import apache_beam as beam
 
 
-class AbstractExtractor(ABC):
+class AbstractExtractor:
 
-    process: beam.DoFn
-    name: str
+    __metaclass__ = ABCMeta
 
     def __init__(self, name):
         """Specific class settings, such as the processing,
         should be defined here"""
         self.name = name
-        pass
+        self.process = None  # To be overriden
 
     def __process(self, p_collection):
         """Filter columns of interest and make operations over them.
@@ -20,11 +19,11 @@ class AbstractExtractor(ABC):
         "CGID","VALUE","VALUENUM","VALUEUOM","WARNING","ERROR","RESULTSTATUS","STOPPED"""
         return (
             p_collection |
-            'Get columns of interest' >> beam.ParDo(self.process())
+            'Get columns of interest' >> beam.ParDo(self.process)
         )
 
     @abstractmethod
-    def __plot(self, p_collection, output_folder):
+    def plot(self, p_collection, output_folder):
         """Specific class Method to transform the previously
         filtered data in human knowledge"""
         pass
@@ -32,7 +31,7 @@ class AbstractExtractor(ABC):
     def extract(self, p_collection, output_folder):
         """Converts the given PCollection into human understandable data
         in a visual form (plots), using the previously defined process function"""
-        self.__plot(
+        self.plot(
             self.__process(p_collection),
             output_folder
         )
