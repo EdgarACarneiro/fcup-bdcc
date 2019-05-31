@@ -1,4 +1,5 @@
 import apache_beam as beam
+from dateutil.parser import parse
 
 from AbstractExtractor import AbstractExtractor
 
@@ -18,6 +19,4 @@ class Process(beam.DoFn):
     """DoFn to filter patient's data"""
 
     def process(self, elem):
-        # Since python2 hasn't star operator
-        el_data = elem.split(",")
-        print(el_data)
+        return [parse(elem[3]), float(elem[7])]

@@ -18,9 +18,10 @@ class FilterPatient(beam.DoFn):
         # Since python2 hasn't star operator
         el_data = elem.split(",")
 
-        # Only return if it's this patient data
+        # # Only return if it's this patient data
         if el_data[1] == self.patient_id:
-            return el_data[2:]
+            return [el_data[2:]]
+
 
 
 class CollectionPrinter(beam.DoFn):
