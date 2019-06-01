@@ -1,7 +1,7 @@
+from AbstractExtractor import AbstractExtractor
 import apache_beam as beam
 from dateutil.parser import parse
-
-from AbstractExtractor import AbstractExtractor
+import time
 
 
 class ValuesPerTime(AbstractExtractor):
@@ -19,4 +19,5 @@ class Process(beam.DoFn):
     """DoFn to filter patient's data"""
 
     def process(self, elem):
-        return [parse(elem[3]), float(elem[7])]
+        return [time.mktime(parse(elem[3]).timetuple()),
+                float(elem[7])]
