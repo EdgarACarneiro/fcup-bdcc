@@ -22,11 +22,12 @@ class AbstractExtractor:
             'Get columns of interest' >> beam.ParDo(self.process)
         )
 
-    def __get_domain(self, p_collection):
+    def columnToList(self, p_collection, col):
+        """Transforms the given column in a list, if it fits in memory"""
         return(
-            p_collection | 
-            'Get domain' >> beam.ParDo(
-                lambda el: el[0]
+            p_collection |
+            'Get columnn %d' % col >> beam.FlatMap(
+                lambda row: [row[col]]
             )
         )
 
@@ -34,9 +35,6 @@ class AbstractExtractor:
     def plot(self, p_collection, output_folder):
         """Specific class Method to transform the previously
         filtered data in human knowledge"""
-        domain = self.__get_domain(p_collection)
-        # https://towardsdatascience.com/the-art-of-effective-visualization-of-multi-dimensional-data-6c7202990c57
-
 
     def extract(self, p_collection, output_folder):
         """Converts the given PCollection into human understandable data

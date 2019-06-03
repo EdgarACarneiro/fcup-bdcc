@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-i', '--input_file', required=True,
                         help='Input csv file containing the data')
-    parser.add_argument('-o', '--output_folder', default='',
+    parser.add_argument('-o', '--output_folder', default='results',
                         help='Output folder for the generated plots')
     parser.add_argument('-p', '--patient', required=True,
                         help='Patient that will analysed')
