@@ -4,6 +4,9 @@ import apache_beam as beam
 from dateutil.parser import parse
 import time
 
+from matplotlib import pyplot as plt
+import pandas as pd
+
 
 class ValuesPerTime(AbstractExtractor):
 
@@ -18,9 +21,22 @@ class ValuesPerTime(AbstractExtractor):
 
         p_collection | \
             'Writing data to file' >> beam.io.WriteToText(
-                output_path, shard_name_template ='')
+                output_path, shard_name_template='')
 
-        # Load with Pandas
+        # Load data to Pandas dataframe
+        df = pd.DataFrame(columns=['datetime', 'value'])
+
+        with open(output_path, 'r') as fd:
+            for line in fd:
+                content = line.split(' ')
+                df = df.append(
+                    {'datetime': content[0], 'value': content[1]},
+                    ignore_index=True)
+
+        plt.style.use('seaborn')
+        plt.plot('datetime', 'value', data=df,
+                 color='mediumvioletred')
+        plt.savefig('%s/%s.png' % (output_folder, self.name))
 
 
 class Process(beam.DoFn):
