@@ -8,6 +8,14 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 
+class Process(beam.DoFn):
+    """DoFn to filter patient's data"""
+
+    def process(self, elem):
+        return [[time.mktime(parse(elem[3]).timetuple()),
+                 float(elem[7])]]
+
+
 class ValuesPerTime(AbstractExtractor):
 
     def __init__(self, name):
@@ -16,32 +24,31 @@ class ValuesPerTime(AbstractExtractor):
         self.process = Process()
 
     def plot(self, p_collection, output_folder):
-        # Write all entries to file
-        output_path = '%s/%s.txt' % (output_folder, self.name)
-
-        p_collection | \
-            'Writing data to file' >> beam.io.WriteToText(
-                output_path, shard_name_template='')
-
-        # Load data to Pandas dataframe
+        # Creating Pandas Dataframe
         df = pd.DataFrame(columns=['datetime', 'value'])
 
-        with open(output_path, 'r') as fd:
-            for line in fd:
-                content = line.split(' ')
-                df = df.append(
-                    {'datetime': content[0], 'value': content[1]},
-                    ignore_index=True)
-
-        plt.style.use('seaborn')
-        plt.plot('datetime', 'value', data=df,
-                 color='mediumvioletred')
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
+        p_collection | \
+            'Gathering Data on List' >> beam.combiners.ToList() | \
+            'Output data as plot' >> beam.ParDo(
+                lambda data: output_data(data, df, output_folder, self.name)
+            )
 
 
-class Process(beam.DoFn):
-    """DoFn to filter patient's data"""
+def output_data(data_list, dataframe, output_folder, name):
+    for entry in data_list:
+        dataframe = dataframe.append(
+            {'datetime': entry[0],
+             'value': entry[1]},
+            ignore_index=True
+        )
 
-    def process(self, elem):
-        return [[time.mktime(parse(elem[3]).timetuple()),
-                 float(elem[7])]]
+    plt.style.use('seaborn')
+    plt.plot('datetime', 'value', data=dataframe,
+             marker='o', color='mediumvioletred')
+
+    plt.title('Values per Date', loc='left',
+              fontsize=12, fontweight=0, color='black')
+    plt.xlabel('Datetime (in ms since 01/01/1970)')
+    plt.ylabel('Values')
+
+    plt.savefig('%s/%s.png' % (output_folder, name))
