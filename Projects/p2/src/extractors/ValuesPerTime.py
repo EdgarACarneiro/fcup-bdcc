@@ -43,8 +43,8 @@ def output_data(data_list, dataframe, output_folder, name):
         )
 
     plt.style.use('seaborn')
-    plt.plot('datetime', 'value', data=dataframe,
-             marker='o', color='mediumvioletred')
+    plt.plot('datetime', 'value', data=dataframe, marker='o',
+             markersize=4, color='mediumvioletred', linestyle='none')
 
     plt.title('Values per Date', loc='left',
               fontsize=12, fontweight=0, color='black')
