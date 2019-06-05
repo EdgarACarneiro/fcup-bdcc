@@ -52,7 +52,7 @@ def run(args):
         # print_collection(patient_data)
 
         # Call different implemented extractors here
-        vpt.ValuesPerTime("test").extract(patient_data, args.output_folder)
+        vpt.ValuesPerTime("ValuesPerTime").extract(patient_data, args.output_folder)
         ih.ItemsHistogram("ItemsHistogram").extract(patient_data, args.output_folder)
 
 

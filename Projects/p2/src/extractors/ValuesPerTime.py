@@ -27,7 +27,8 @@ class ValuesPerTime(AbstractExtractor):
                 ignore_index=True
             )
 
-        plt.style.use('seaborn')
+        self.resetPlotting()
+
         plt.plot('datetime', 'value', data=dataframe, marker='o',
                  markersize=4, color='mediumvioletred', linestyle='none')
 
@@ -43,7 +44,6 @@ class ValuesPerTime(AbstractExtractor):
         df = pd.DataFrame(columns=['datetime', 'value'])
 
         p_collection | \
-            '%s: Gathering Data on List' % self.name >> beam.combiners.ToList() | \
             '%s: Output data as a plot' % self.name >> beam.ParDo(
                 lambda data: self.output_data(data, df, output_folder)
             )

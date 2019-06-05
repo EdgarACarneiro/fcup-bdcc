@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 import apache_beam as beam
 
+from matplotlib import pyplot as plt
+
 
 class AbstractExtractor:
 
@@ -19,7 +21,8 @@ class AbstractExtractor:
         "CGID","VALUE","VALUENUM","VALUEUOM","WARNING","ERROR","RESULTSTATUS","STOPPED"""
         return (
             p_collection |
-            '%s: Get columns of interest' % self.name >> beam.ParDo(self.process)
+            '%s: Get columns of interest' % self.name >> beam.ParDo(self.process) |
+            '%s: Gathering Data on List' % self.name >> beam.combiners.ToList()
         )
 
     def columnToList(self, p_collection, col):
@@ -30,6 +33,10 @@ class AbstractExtractor:
                 lambda row: [row[col]]
             )
         )
+
+    def resetPlotting(self):
+        plt.clf()
+        plt.style.use('seaborn')
 
     @abstractmethod
     def plot(self, p_collection, output_folder):
