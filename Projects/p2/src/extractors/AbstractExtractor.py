@@ -19,7 +19,7 @@ class AbstractExtractor:
         "CGID","VALUE","VALUENUM","VALUEUOM","WARNING","ERROR","RESULTSTATUS","STOPPED"""
         return (
             p_collection |
-            'Get columns of interest' >> beam.ParDo(self.process)
+            '%s: Get columns of interest' % self.name >> beam.ParDo(self.process)
         )
 
     def columnToList(self, p_collection, col):

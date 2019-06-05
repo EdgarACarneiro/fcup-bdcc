@@ -43,7 +43,7 @@ class ValuesPerTime(AbstractExtractor):
         df = pd.DataFrame(columns=['datetime', 'value'])
 
         p_collection | \
-            'Gathering Data on List' >> beam.combiners.ToList() | \
-            'Output data as a plot' >> beam.ParDo(
+            '%s: Gathering Data on List' % self.name >> beam.combiners.ToList() | \
+            '%s: Output data as a plot' % self.name >> beam.ParDo(
                 lambda data: self.output_data(data, df, output_folder)
             )

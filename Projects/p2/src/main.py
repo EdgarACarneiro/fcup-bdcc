@@ -3,6 +3,7 @@ from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
 
 from extractors import ValuesPerTime as vpt
+from extractors import ItemsHistogram as ih
 
 """Your task is to perform a statistical analysis on this data
 and produce timeline graphs for each patient (SUBJECT_ID)"""
@@ -52,6 +53,7 @@ def run(args):
 
         # Call different implemented extractors here
         vpt.ValuesPerTime("test").extract(patient_data, args.output_folder)
+        ih.ItemsHistogram("ItemsHistogram").extract(patient_data, args.output_folder)
 
 
 
