@@ -4,6 +4,7 @@ import argparse
 
 from extractors import ValuesPerTime as vpt
 from extractors import ItemsHistogram as ih
+from extractors import LoSHistogram as los
 
 """Your task is to perform a statistical analysis on this data
 and produce timeline graphs for each patient (SUBJECT_ID)"""
@@ -22,7 +23,6 @@ class FilterPatient(beam.DoFn):
         # # Only return if it's this patient data
         if el_data[1] == self.patient_id:
             return [el_data[2:]]
-
 
 
 class CollectionPrinter(beam.DoFn):
@@ -52,9 +52,13 @@ def run(args):
         # print_collection(patient_data)
 
         # Call different implemented extractors here
-        vpt.ValuesPerTime("ValuesPerTime").extract(patient_data, args.output_folder)
-        ih.ItemsHistogram("ItemsHistogram").extract(patient_data, args.output_folder)
-
+        vpt.ValuesPerTime("ValuesPerTime").extract(
+            patient_data, args.output_folder)
+        ih.ItemsHistogram("ItemsHistogram").extract(
+            patient_data, args.output_folder)
+        los.LoSHistogram("LoSHistogram").extract(
+            patient_data, args.output_folder
+        )
 
 
 if __name__ == '__main__':

@@ -14,18 +14,25 @@ class AbstractExtractor:
         self.name = name
         self.process = None  # To be overriden
 
-    def __process(self, p_collection):
+    def collection_to_list(self, p_collection):
+        """Transform a collection into a list"""
+        return (
+            p_collection |
+            '%s: Gathering Data on List' % self.name >> beam.combiners.ToList()
+        )
+
+    def processor(self, p_collection):
         """Filter columns of interest and make operations over them.
         Initial dataset Schema:
         "ROW_ID","SUBJECT_ID","HADM_ID","ICUSTAY_ID","ITEMID","CHARTTIME","STORETIME",
         "CGID","VALUE","VALUENUM","VALUEUOM","WARNING","ERROR","RESULTSTATUS","STOPPED"""
-        return (
+        return self.collection_to_list(
             p_collection |
-            '%s: Get columns of interest' % self.name >> beam.ParDo(self.process) |
-            '%s: Gathering Data on List' % self.name >> beam.combiners.ToList()
+            '%s: Get columns of interest' % self.name >> beam.ParDo(
+                self.process)
         )
 
-    def columnToList(self, p_collection, col):
+    def column_to_list(self, p_collection, col):
         """Transforms the given column in a list, if it fits in memory"""
         return(
             p_collection |
@@ -47,6 +54,6 @@ class AbstractExtractor:
         """Converts the given PCollection into human understandable data
         in a visual form (plots), using the previously defined process function"""
         self.plot(
-            self.__process(p_collection),
+            self.processor(p_collection),
             output_folder
         )
