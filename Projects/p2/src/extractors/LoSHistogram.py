@@ -1,5 +1,6 @@
 from AbstractExtractor import AbstractExtractor
 import apache_beam as beam
+import seaborn as sns
 
 from dateutil.parser import parse
 import time
@@ -26,7 +27,7 @@ class LoSHistogram(AbstractExtractor):
         self.process = Process()
 
     def processor(self, p_collection):
-        return (
+        return self.collection_to_list(
             p_collection |
             beam.FlatMap(lambda el: [(el[0], el[3])]) |
             beam.GroupByKey() |
@@ -36,12 +37,13 @@ class LoSHistogram(AbstractExtractor):
     def output_data(self, haids, output_folder):
         self.resetPlotting()
 
-        plt.hist(haids, alpha=0.8, bins='rice', label='LoS (in mins)', rwidth=0.8)
-        plt.legend(loc='upper right')
-        plt.xticks(rotation=90, fontsize=5)
-
+        
         plt.title('Length of Stay Histogram', loc='left',
                   fontsize=12, fontweight=0, color='black')
+
+        sns.distplot(haids, hist=True, bins='rice',
+                     label='LoS (in mins)', kde=False, rug=True)
+        plt.legend(loc='upper right')
 
         plt.savefig('%s/%s.png' % (output_folder, self.name))
 
