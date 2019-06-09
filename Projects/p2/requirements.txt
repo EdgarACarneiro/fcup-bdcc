@@ -58,6 +58,8 @@ PyVCF==0.6.8
 PyYAML==3.13
 requests==2.22.0
 rsa==4.0
+scipy==1.2.2
+seaborn==0.9.0
 six==1.11.0
 subprocess32==3.5.4
 tensorboard==1.8.0
