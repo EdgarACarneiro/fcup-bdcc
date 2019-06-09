@@ -5,6 +5,7 @@ import argparse
 from extractors import ValuesPerTime as vpt
 from extractors import ItemsHistogram as ih
 from extractors import LoSHistogram as los
+from extractors import StackedDailyItems as sdi
 
 """Your task is to perform a statistical analysis on this data
 and produce timeline graphs for each patient (SUBJECT_ID)"""
@@ -57,8 +58,9 @@ def run(args):
         ih.ItemsHistogram("ItemsHistogram").extract(
             patient_data, args.output_folder)
         los.LoSHistogram("LoSHistogram").extract(
-            patient_data, args.output_folder
-        )
+            patient_data, args.output_folder)
+        sdi.StackedDailyItems("StackedDailyItems").extract(
+            patient_data, args.output_folder)
 
 
 if __name__ == '__main__':

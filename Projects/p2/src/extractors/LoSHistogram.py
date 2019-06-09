@@ -29,21 +29,23 @@ class LoSHistogram(AbstractExtractor):
     def processor(self, p_collection):
         return self.collection_to_list(
             p_collection |
-            beam.FlatMap(lambda el: [(el[0], el[3])]) |
-            beam.GroupByKey() |
-            beam.ParDo(self.process)
+            '%s: Get columns of interest' % self.name >> beam.FlatMap(
+                lambda el: [(el[0], el[3])]) |
+            '%s: Grouping by HAID' % self.name >> beam.GroupByKey() |
+            '%s: Processing HAID\'s data' % self.name >> beam.ParDo(
+                self.process)
         )
 
     def output_data(self, haids, output_folder):
         self.resetPlotting()
 
-        
-        plt.title('Length of Stay Histogram', loc='left',
+        plt.title('Length of Stay', loc='left',
                   fontsize=12, fontweight=0, color='black')
 
         sns.distplot(haids, hist=True, bins='rice',
-                     label='LoS (in mins)', kde=False, rug=True)
+                     label='LoS', kde=False, rug=True)
         plt.legend(loc='upper right')
+        plt.xlabel('time (in mins)')
 
         plt.savefig('%s/%s.png' % (output_folder, self.name))
 

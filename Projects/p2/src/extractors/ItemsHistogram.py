@@ -21,6 +21,7 @@ class ItemsHistogram(AbstractExtractor):
 
         plt.title('Items Histogram', loc='left',
                   fontsize=12, fontweight=0, color='black')
+        plt.xlabel('Item ID')
 
         plt.savefig('%s/%s.png' % (output_folder, self.name))
 
