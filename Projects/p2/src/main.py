@@ -6,6 +6,7 @@ from extractors.ValuesPerTime import ValuesPerTime
 from extractors.ItemsHistogram import ItemsHistogram
 from extractors.LoSHistogram import LoSHistogram
 from extractors.StackedDailyItems import StackedDailyItems
+from extractors.CGItemQuantity import CGItemQuantity
 
 """Your task is to perform a statistical analysis on this data
 and produce timeline graphs for each patient (SUBJECT_ID)"""
@@ -16,6 +17,7 @@ extractors = [
     ItemsHistogram,
     LoSHistogram,
     StackedDailyItems,
+    CGItemQuantity
 ]
 
 
