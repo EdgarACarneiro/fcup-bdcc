@@ -38,13 +38,14 @@ class ValidRows(beam.DoFn):
         maxDate = minDate + 24 * self.HOUR_TO_MIN
 
         filtered_times = filter(lambda r:
-                                int(math.floor(minDate)) < time.mktime(parse(r[5]).timetuple()) * self.MS_TO_MIN < int(math.ceil(maxDate)),
+                                int(math.floor(minDate)) < time.mktime(parse(r[5]).timetuple()) * self.MS_TO_MIN < int(
+                                    math.ceil(maxDate)),
                                 tup[1])
 
-        valid_rows = map(lambda r: (r[0], r[8]), filtered_times)
+        valid_rows = map(lambda r: (r[0], r[7]), filtered_times)
 
         for t in valid_rows:
-            yield (t[0], t[1] is not None)
+            yield (t[0], True if t[1] != u'' else False)
 
 
 class LosProcess(beam.DoFn):
@@ -130,8 +131,6 @@ def run(
                          | 'Join Datasets' >> beam.CoGroupByKey()
                          | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows())
                          | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
-
-
 
         # items_mean = (data
         #               | 'Split Data' >> beam.Map(lambda event: (int(event.split(',')[4]), float(event.split(',')[9])))
