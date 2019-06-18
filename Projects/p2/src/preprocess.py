@@ -21,32 +21,30 @@ class CollectionPrinter(beam.DoFn):
 
 class FilterRows(beam.DoFn):
 
-    def __init__(self, data, *unused_args, **unused_kwargs):
-        super(FilterRows, self).__init__(*unused_args, **unused_kwargs)
-        self.data = data
+    def process(self, elem):
+        if len(elem[1]['valid']) != 0:
+            elem[1]['data'][0].append(elem[1]['valid'][0])
+            return [elem[1]['data'][0]]
 
-    def process(self, lista):
-        filtered_data = self.data | beam.Filter(lambda row: row in lista)
-        return filtered_data
 
 class ValidRows(beam.DoFn):
     MS_TO_MIN = 1.0 / 3600.0
     HOUR_TO_MIN = 60
 
-    def process(self, elem):
-        dates_array = map(lambda arr: time.mktime(parse(arr[1]).timetuple()), elem[1])
+    def process(self, tup):
+        dates_array = map(lambda r: time.mktime(parse(r[5]).timetuple()), tup[1])
 
         minDate = min(dates_array) * self.MS_TO_MIN
         maxDate = minDate + 24 * self.HOUR_TO_MIN
 
-        filtered_times = filter(lambda row:
-                                time.mktime(parse(row[1]).timetuple()) * self.MS_TO_MIN > int(math.floor(minDate)) and
-                                time.mktime(parse(row[1]).timetuple()) * self.MS_TO_MIN < int(math.ceil(maxDate)),
-                                elem[1])
+        filtered_times = filter(lambda r:
+                                int(math.floor(minDate)) < time.mktime(parse(r[5]).timetuple()) * self.MS_TO_MIN < int(math.ceil(maxDate)),
+                                tup[1])
 
-        valid_rows = map(lambda x: x[0], filtered_times)
+        valid_rows = map(lambda r: (r[0], r[8]), filtered_times)
 
-        return [valid_rows]
+        for t in valid_rows:
+            yield (t[0], t[1] is not None)
 
 
 class LosProcess(beam.DoFn):
@@ -120,14 +118,18 @@ def run(
         )
         filter_rows = (data
                        | 'Get columns of interest' >> beam.FlatMap(lambda event: [(event.split(',')[1],
-                                                                                   [event.split(',')[0],
-                                                                                    event.split(',')[5]])])
+                                                                                   event.split(','))])
                        | 'Grouping by Patient' >> beam.GroupByKey()
                        | 'Get valid Rows' >> beam.ParDo(ValidRows())
-                       | 'Make a List' >> beam.combiners.ToList()
-                       | 'Filter Rows' >> beam.ParDo(FilterRows(data))
-                       | 'Print Collection' >> beam.ParDo(CollectionPrinter())
                        )
+
+        data_tuple = (data | 'Make Tuple' >> beam.FlatMap(lambda event: [(event.split(',')[0], event.split(','))]))
+
+        filtered_data = ({'data': data_tuple,
+                          'valid': filter_rows}
+                         | 'Join Datasets' >> beam.CoGroupByKey()
+                         | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows())
+                         | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
 
 
 
