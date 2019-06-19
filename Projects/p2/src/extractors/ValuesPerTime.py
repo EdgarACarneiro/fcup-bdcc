@@ -1,11 +1,10 @@
-from AbstractExtractor import AbstractExtractor
 import apache_beam as beam
-
-from dateutil.parser import parse
-import time
-
 from matplotlib import pyplot as plt
 import pandas as pd
+import seaborn as sns
+from datetime import date, datetime
+
+from AbstractExtractor import AbstractExtractor
 
 
 class ValuesPerTime(AbstractExtractor):
@@ -14,36 +13,55 @@ class ValuesPerTime(AbstractExtractor):
         super(ValuesPerTime, self).__init__(name)
 
         self.process = \
-            lambda elem: [[time.mktime(parse(elem[3]).timetuple()),
-                           float(elem[7])]]
+            lambda elem: [[elem[3],
+                           float(elem[7]),
+                           elem[9],
+                           elem[10]]]
 
-    def output_data(self, data_list, dataframe, output_folder):
+    @staticmethod
+    def __timestamp(dt):
+        return (dt - datetime(1970, 1, 1)).total_seconds()
+
+    def output_data(self, data_list, output_folder):
+        df = pd.DataFrame(columns=['datetime', 'value', 'measurement'])
+
+        # Populating Dataframe
         for entry in data_list:
-            dataframe = dataframe.append(
+            df = df.append(
                 {
-                    'datetime': entry[0],
-                    'value': entry[1]
+                    'datetime': self.__timestamp(datetime.strptime(entry[0], '%Y-%m-%d %H:%M:%S')),
+                    'value': entry[1],
+                    'measurement': 'Error' if entry[3] == '1' else
+                    ('Warning' if entry[2] == '1' else 'Normal')
                 },
                 ignore_index=True
             )
+        df = df.sort_values('datetime', ascending=True)
 
-        self.resetPlotting()
+        plt.clf()
 
-        plt.plot('datetime', 'value', data=dataframe, marker='o',
-                 markersize=4, color='mediumvioletred', linestyle='none')
+        # Plotting
+        ax = sns.scatterplot(x='datetime', y='value',
+                             hue='measurement', style='measurement', data=df,
+                             palette=sns.color_palette(['#5392e0', '#f7bf27', '#c62901']))
 
-        plt.title('Values per Date', loc='left',
+        # Renaming the x-Axis
+        new_labels = [datetime.fromtimestamp(item).strftime(
+            '%Y-%m-%d') for item in ax.get_xticks()]
+        ax.set_xticklabels(new_labels)
+
+        plt.title('Administered values per Date', loc='left',
                   fontsize=12, fontweight=0, color='black')
-        plt.xlabel('Datetime (in ms since 01/01/1970)')
+
         plt.ylabel('Values')
+        plt.xlabel('ChartTime')
+        plt.xticks(rotation='vertical')
+        plt.tight_layout()
 
         plt.savefig('%s/%s.png' % (output_folder, self.name))
 
     def plot(self, p_collection, output_folder):
-        # Creating Pandas Dataframe
-        df = pd.DataFrame(columns=['datetime', 'value'])
-
         p_collection | \
             '%s: Output data as a plot' % self.name >> beam.ParDo(
-                lambda data: self.output_data(data, df, output_folder)
+                lambda data: self.output_data(data, output_folder)
             )
