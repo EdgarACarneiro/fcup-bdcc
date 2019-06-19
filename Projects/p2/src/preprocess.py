@@ -19,12 +19,22 @@ class CollectionPrinter(beam.DoFn):
         print(elem)
 
 
+class UpdateSchema(beam.DoFn):
+
+    def __init__(self, items):
+
+        self.items = beam.combiners.ToList(items)
+
+    def process(self, elem):
+        return
+
+
 class FilterRows(beam.DoFn):
 
     def process(self, elem):
         if len(elem[1]['valid']) != 0:
             elem[1]['data'][0].append(elem[1]['valid'][0])
-            return [elem[1]['data'][0]]
+            return [(elem[1]['data'][0][2], elem[1]['data'][0])]
 
 
 class ValidRows(beam.DoFn):
@@ -45,17 +55,17 @@ class ValidRows(beam.DoFn):
         valid_rows = map(lambda r: (r[0], r[7]), filtered_times)
 
         for t in valid_rows:
-            yield (t[0], True if t[1] != u'' else False)
+            yield (t[0], t[1] != u'')
 
 
 class LosProcess(beam.DoFn):
     MS_TO_MIN = 1.0 / 3600.0
 
-    def process(self, haid_entry):
-        dates_array = map(lambda date: time.mktime(parse(date).timetuple()),
-                          haid_entry[1])
+    def process(self, elem):
+        dates_array = map(lambda arr: time.mktime(parse(arr[5]).timetuple()),
+                          elem[1])
 
-        return [(haid_entry[0], (max(dates_array) - min(dates_array)) * self.MS_TO_MIN)]
+        return [(elem[0], (max(dates_array) - min(dates_array)) * self.MS_TO_MIN)]
 
 
 def run(
@@ -129,20 +139,24 @@ def run(
         filtered_data = ({'data': data_tuple,
                           'valid': filter_rows}
                          | 'Join Datasets' >> beam.CoGroupByKey()
-                         | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows())
-                         | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
+                         | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
 
-        # items_mean = (data
-        #               | 'Split Data' >> beam.Map(lambda event: (int(event.split(',')[4]), float(event.split(',')[9])))
-        #               | 'Group by Item' >> beam.GroupByKey()
-        #               | 'Calc Items Mean' >> beam.Map(lambda t: (t[0], sum(t[1]) / len(t[1])))
-        #               )
-        #
-        # los_per_haid = (data
-        #                 | 'Get columns of interest' >> beam.FlatMap(
-        #             lambda event: [(event.split(',')[2], event.split(',')[5])])
-        #                 | 'Grouping by HAID' >> beam.GroupByKey()
-        #                 | 'Calculate Los' >> beam.ParDo(LosProcess()))
+        items_mean = (filtered_data
+                      | 'Split Data' >> beam.Map(lambda event: (int(event[1][4]), float(event[1][9])))
+                      | 'Group by Item' >> beam.GroupByKey()
+                      | 'Calc Items Mean' >> beam.Map(lambda t: (t[0], sum(t[1]) / len(t[1]))))
+                      #| 'Print Collection' >> beam.ParDo(CollectionPrinter()))
+
+        los_per_haid = (filtered_data
+                        | 'Grouping by HAID' >> beam.GroupByKey()
+                        | 'Calculate Los' >> beam.ParDo(LosProcess()))
+
+        base_schema = ({'data': filtered_data,
+                        'los': los_per_haid}
+                       | 'Create Base Schema' >> beam.CoGroupByKey())
+
+        final_schema = (base_schema
+                        | 'Update Schema' >> beam.ParDo(UpdateSchema(items_mean)))
 
 
 if __name__ == '__main__':
