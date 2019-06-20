@@ -11,6 +11,7 @@ import tensorflow_transform.beam.impl as beam_impl
 from dateutil.parser import parse
 import time
 
+NORMALIZE_CONSTANT = 500
 
 class CollectionPrinter(beam.DoFn):
     """Helper DoFn able to print a PCollection contents"""
@@ -38,6 +39,7 @@ class UpdateSchema(beam.DoFn):
                 entry.append(items[idx][1])
 
         entry.append(los[0])
+        entry = [x / NORMALIZE_CONSTANT for x in entry]
         entry.append(overall_cgid)
 
         return [entry]
@@ -97,7 +99,6 @@ class LosProcess(beam.DoFn):
 
 def run(
         input_file,
-        feature_scaling=None,
         eval_percent=20.0,
         beam_options=None,
         work_dir=None):
@@ -107,27 +108,13 @@ def run(
     a training and evaluation dataset.
     """
 
-    # Populate optional arguments
-    if not feature_scaling:
-        feature_scaling = lambda inputs: inputs
-
     #     # Type checking
     # if not isinstance(labels, list):
     #     raise ValueError(
     #         '`labels` must be list(str). '
     #         'Given: {} {}'.format(labels, type(labels)))
     #
-    # if not isinstance(feature_extraction, beam.PTransform):
-    #     raise ValueError(
-    #         '`feature_extraction` must be {}. '
-    #         'Given: {} {}'.format(beam.PTransform,
-    #                               feature_extraction, type(feature_extraction)))
 
-    if not callable(feature_scaling):
-        raise ValueError(
-            '`feature_scaling` must be callable. '
-            'Given: {} {}'.format(feature_scaling,
-                                  type(feature_scaling)))
 
     if beam_options and not isinstance(beam_options, PipelineOptions):
         raise ValueError(
@@ -149,6 +136,7 @@ def run(
     with beam.Pipeline(options=beam_options) as p, \
             beam_impl.Context(temp_dir=tft_temp_dir):
 
+        # [START feature_extraction]
         data = (
                 p
                 | 'Read events' >> beam.io.ReadFromText(input_file, skip_header_lines=1)
@@ -180,8 +168,10 @@ def run(
                         'los': los_per_haid}
                        | 'Create Base Schema' >> beam.CoGroupByKey()
                        | 'Update Schema' >> beam.ParDo(UpdateSchema())
-                       | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
+                       )
 
+
+        # [END feature_extraction]
 
 
 if __name__ == '__main__':
@@ -193,13 +183,14 @@ if __name__ == '__main__':
                         help='Input csv file containing the data')
     parser.add_argument('-o', '--work_dir', default='tmp',
                         help='Output folder for the generated plots')
+    # parser.add_argument('-p', '--total_items', required=True,
+    #                     help='Number of features to be considered')
 
     args, pipeline_args = parser.parse_known_args()
 
     beam_options = PipelineOptions(pipeline_args, save_main_session=True)
     preprocess_data = run(
         args.input_file,
-        # feature_scaling=preprocessor.normalize_inputs,
         beam_options=beam_options,
         work_dir=args.work_dir)
 
