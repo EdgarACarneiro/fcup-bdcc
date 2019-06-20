@@ -79,6 +79,7 @@ class StackedDailyItems(AbstractExtractor):
         df.set_index('Items').T.plot(kind='bar', stacked=True,
                                      colormap=ListedColormap(sns.color_palette("GnBu", 10)))
         plt.xlabel('Hour')
+        plt.ylabel('Administration Frequency')
 
         plt.title('Items Hours Intake', loc='left',
                   fontsize=12, fontweight=0, color='black')

@@ -21,5 +21,6 @@ class ItemsHistogram(AbstractExtractor):
         plt.title('Items Histogram', loc='left',
                   fontsize=12, fontweight=0, color='black')
         plt.xlabel('Item ID')
+        plt.ylabel('Administration Frequency')
 
         self.legend_and_save(output_folder)

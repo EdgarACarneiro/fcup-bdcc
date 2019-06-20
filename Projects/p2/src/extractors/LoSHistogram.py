@@ -45,5 +45,6 @@ class LoSHistogram(AbstractExtractor):
         sns.distplot(haids, hist=True, bins='rice',
                      label='LoS', kde=False, rug=True)
         plt.xlabel('time (in mins)')
+        plt.ylabel('Frequency')
 
         self.legend_and_save(output_folder)
