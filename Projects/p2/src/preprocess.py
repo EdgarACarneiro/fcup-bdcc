@@ -80,7 +80,7 @@ class UpdateSchema(beam.DoFn):
     def process(self, elem):
         items = elem[1]['items'][0]
         data = elem[1]['data']
-        los = elem[1]['los']
+        los = elem[1]['LoS']
         all_items_set = map(lambda x: x[0], items)
         items_measured = map(lambda x: x[4], data)
         overall_cgid = int(all(map(lambda x: x[13], data)))
@@ -161,7 +161,7 @@ class LosProcess(beam.DoFn):
 
 
 def normalize_inputs(inputs):
-    dict_ret = {}
+    dict_ret = {'LoS': inputs['LoS']}
     for val in FEATURE_SPEC.keys():
         if val != 'LoS':
             dict_ret[val] = tft.scale_to_0_1(inputs[val])
@@ -248,12 +248,12 @@ def run(
                       )
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()
-                        | 'Calculate Los' >> beam.ParDo(LosProcess())
+                        | 'Calculate LoS' >> beam.ParDo(LosProcess())
                         )
 
         dataset = ({'data': filtered_data,
                     'items': items_mean,
-                    'los': los_per_haid}
+                    'LoS': los_per_haid}
                    | 'Create Base Schema' >> beam.CoGroupByKey()
                    | 'Update Schema' >> beam.ParDo(UpdateSchema())
                    | 'Validate inputs' >> beam.ParDo(ValidateInputData(
