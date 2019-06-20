@@ -51,5 +51,6 @@ class CGItemQuantity(AbstractExtractor):
         plt.title('CGI - Item - Quantity Relation', loc='left',
                   fontsize=12, fontweight=0, color='black')
         plt.xticks(rotation='vertical', fontsize=5)
+        plt.yticks(fontsize=5)
 
         self.legend_and_save(output_folder)

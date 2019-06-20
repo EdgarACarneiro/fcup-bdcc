@@ -21,6 +21,8 @@ class Process(beam.DoFn):
 
 class StackedDailyItems(AbstractExtractor):
 
+    NUM_INDIVIDUAL_ITEMS = 10
+
     def __init__(self, name):
         super(StackedDailyItems, self).__init__(name)
 
@@ -41,14 +43,22 @@ class StackedDailyItems(AbstractExtractor):
 
         # Listing not so relevant items
         others = []
-        final_items = []
+        final_items = None
 
-        for item in items:
-            if sum(item[1]) <= 15:
-                items.remove(item)
-                others.append(item)
-            else:
-                final_items.append(item)
+        # Dinamically aggregatting data in others
+        counter = 0
+        while(final_items == None or len(final_items) > self.NUM_INDIVIDUAL_ITEMS):
+            # Conidition was not met, restart algorithm with higher counter
+            final_items = []
+            others = []
+            counter += 1
+
+            # Populate others array
+            for item in items:
+                if sum(item[1]) <= counter:
+                    others.append(item)
+                else:
+                    final_items.append(item)
 
         # Aggregating those in 'other' item
         others_agg = [0] * 24

@@ -57,8 +57,6 @@ class ValuesPerTime(AbstractExtractor):
         plt.xlabel('ChartTime')
         plt.xticks(rotation='vertical')
         plt.tight_layout()
-        L = plt.legend()
-        print(L.get_texts())
 
         self.legend_and_save(output_folder)
 
