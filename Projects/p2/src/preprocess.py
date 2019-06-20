@@ -22,8 +22,25 @@ class CollectionPrinter(beam.DoFn):
 class UpdateSchema(beam.DoFn):
 
     def process(self, elem):
+        items = elem[1]['items']
+        data = elem[1]['data']
+        los = elem[1]['los']
+        all_items_set = map(lambda x: x[0], items)
+        items_measured = map(lambda x: x[4], data)
+        overall_cgid = int(all(map(lambda x: x[13], data)))
 
-        return
+        entry = []
+        for idx, item in enumerate(all_items_set):
+            try:
+                i = items_measured.index(item)
+                entry.append(data[i][9])
+            except:
+                entry.append(items[idx][1])
+
+        entry.append(los[0])
+        entry.append(overall_cgid)
+
+        return [entry]
 
 
 class FilterRows(beam.DoFn):
@@ -60,8 +77,13 @@ class ItemsProcess(beam.DoFn):
     def process(self, elem):
         values = map(lambda v: v[1], elem[1])
         mean = sum(values)/len(values)
+        haid_item_set = set()
         for tup in elem[1]:
-            yield (tup[0], (elem[0], mean))
+            haid_item = (tup[0], elem[0])
+            if haid_item not in haid_item_set:
+                haid_item_set.add(haid_item)
+                yield (tup[0], (elem[0], mean))
+
 
 class LosProcess(beam.DoFn):
     MS_TO_MIN = 1.0 / 3600.0
@@ -127,7 +149,6 @@ def run(
     with beam.Pipeline(options=beam_options) as p, \
             beam_impl.Context(temp_dir=tft_temp_dir):
 
-        # Transform and validate the input data matches the input schema
         data = (
                 p
                 | 'Read events' >> beam.io.ReadFromText(input_file, skip_header_lines=1)
@@ -146,13 +167,10 @@ def run(
                          | 'Join Datasets' >> beam.CoGroupByKey()
                          | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
 
-
         items_mean = (filtered_data
                       | 'Split Data' >> beam.Map(lambda event: (int(event[1][4]), (event[1][2], float(event[1][9]))))
                       | 'Group by Item' >> beam.GroupByKey()
                       | 'Calc Items Mean' >> beam.ParDo(ItemsProcess()))
-
-
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()
                         | 'Calculate Los' >> beam.ParDo(LosProcess()))
@@ -161,13 +179,8 @@ def run(
                         'items': items_mean,
                         'los': los_per_haid}
                        | 'Create Base Schema' >> beam.CoGroupByKey()
+                       | 'Update Schema' >> beam.ParDo(UpdateSchema())
                        | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
-
-        # #
-        # final_schema = ({'base': base_schema,
-        #                  'items': items_mean}
-        #                 | 'Update Base Schema' >> beam.CoGroupByKey()
-        #               | 'x Collection' >> beam.ParDo(CollectionPrinter()))
 
 
 
