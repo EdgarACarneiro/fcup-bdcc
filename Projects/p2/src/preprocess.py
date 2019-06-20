@@ -21,11 +21,8 @@ class CollectionPrinter(beam.DoFn):
 
 class UpdateSchema(beam.DoFn):
 
-    def __init__(self, items):
-
-        self.items = beam.combiners.ToList(items)
-
     def process(self, elem):
+
         return
 
 
@@ -57,6 +54,14 @@ class ValidRows(beam.DoFn):
         for t in valid_rows:
             yield (t[0], t[1] != u'')
 
+
+class ItemsProcess(beam.DoFn):
+
+    def process(self, elem):
+        values = map(lambda v: v[1], elem[1])
+        mean = sum(values)/len(values)
+        for tup in elem[1]:
+            yield (tup[0], (elem[0], mean))
 
 class LosProcess(beam.DoFn):
     MS_TO_MIN = 1.0 / 3600.0
@@ -141,22 +146,29 @@ def run(
                          | 'Join Datasets' >> beam.CoGroupByKey()
                          | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
 
+
         items_mean = (filtered_data
-                      | 'Split Data' >> beam.Map(lambda event: (int(event[1][4]), float(event[1][9])))
+                      | 'Split Data' >> beam.Map(lambda event: (int(event[1][4]), (event[1][2], float(event[1][9]))))
                       | 'Group by Item' >> beam.GroupByKey()
-                      | 'Calc Items Mean' >> beam.Map(lambda t: (t[0], sum(t[1]) / len(t[1]))))
-                      #| 'Print Collection' >> beam.ParDo(CollectionPrinter()))
+                      | 'Calc Items Mean' >> beam.ParDo(ItemsProcess()))
+
 
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()
                         | 'Calculate Los' >> beam.ParDo(LosProcess()))
 
         base_schema = ({'data': filtered_data,
+                        'items': items_mean,
                         'los': los_per_haid}
-                       | 'Create Base Schema' >> beam.CoGroupByKey())
+                       | 'Create Base Schema' >> beam.CoGroupByKey()
+                       | 'Print Collection' >> beam.ParDo(CollectionPrinter()))
 
-        final_schema = (base_schema
-                        | 'Update Schema' >> beam.ParDo(UpdateSchema(items_mean)))
+        # #
+        # final_schema = ({'base': base_schema,
+        #                  'items': items_mean}
+        #                 | 'Update Base Schema' >> beam.CoGroupByKey()
+        #               | 'x Collection' >> beam.ParDo(CollectionPrinter()))
+
 
 
 if __name__ == '__main__':
