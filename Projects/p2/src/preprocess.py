@@ -1,16 +1,53 @@
 from __future__ import absolute_import
+
 import argparse
 import math
+import time
+
+import dill as pickle
+import os
 import random
 import tempfile
-import os
+
+
 import apache_beam as beam
 import tensorflow as tf
-from tensorflow_transform.beam.tft_beam_io import transform_fn_io
-from apache_beam.options.pipeline_options import PipelineOptions
 import tensorflow_transform.beam.impl as beam_impl
+
+from apache_beam.io import tfrecordio
+from apache_beam.options.pipeline_options import PipelineOptions
 from dateutil.parser import parse
-import time
+from tensorflow_transform.beam.tft_beam_io import transform_fn_io
+from tensorflow_transform.coders import example_proto_coder
+from tensorflow_transform.tf_metadata import dataset_metadata
+from tensorflow_transform.tf_metadata import dataset_schema
+import tensorflow_transform as tft
+
+
+class PreprocessData(object):
+    def __init__(
+            self,
+            input_feature_spec,
+            labels,
+            train_files_pattern,
+            eval_files_pattern):
+
+        self.labels = labels
+        self.input_feature_spec = input_feature_spec
+        self.train_files_pattern = train_files_pattern
+        self.eval_files_pattern = eval_files_pattern
+
+
+def dump(obj, filename):
+    """ Wrapper to dump an object to a file."""
+    with tf.gfile.Open(filename, 'wb') as f:
+        pickle.dump(obj, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+def load(filename):
+    """ Wrapper to load an object from a file."""
+    with tf.gfile.Open(filename, 'rb') as f:
+        return pickle.load(f)
 
 
 class CollectionPrinter(beam.DoFn):
@@ -19,6 +56,24 @@ class CollectionPrinter(beam.DoFn):
     def process(self, elem):
         print(elem)
 
+class ValidateInputData(beam.DoFn):
+    """This DoFn validates that every element matches the metadata given."""
+    def __init__(self, feature_spec):
+        super(ValidateInputData, self).__init__()
+        self.feature_names = set(feature_spec.keys())
+
+    def process(self, elem):
+        if not isinstance(elem, dict):
+            raise ValueError(
+                'Element must be a dict(str, value). '
+                'Given: {} {}'.format(elem, type(elem)))
+        elem_features = set(elem.keys())
+        if not self.feature_names.issubset(elem_features):
+            raise ValueError(
+                "Element features are missing from feature_spec keys. "
+                'Given: {}; Features: {}'.format(
+                    list(elem_features), list(self.feature_names)))
+        yield elem
 
 class UpdateSchema(beam.DoFn):
 
@@ -30,16 +85,18 @@ class UpdateSchema(beam.DoFn):
         items_measured = map(lambda x: x[4], data)
         overall_cgid = int(all(map(lambda x: x[13], data)))
 
-        entry = []
+        entry = {}
+        counter = 0
         for idx, item in enumerate(all_items_set):
             try:
                 i = items_measured.index(item)
-                entry.append(float(data[i][9]))
+                entry['item' + str(counter)] = float(data[i][9])
             except:
-                entry.append(float(items[idx][1]))
+                entry['item' + str(counter)] = float(items[idx][1])
+            counter+=1
 
-        entry.append(los[0])
-        entry.append(overall_cgid)
+        entry['LoS'] = los[0]
+        entry['CGID'] = overall_cgid
         return [entry]
 
 
@@ -77,8 +134,8 @@ class MeanProcess(beam.DoFn):
     def process(self, elem):
         values = map(lambda v: v[1], elem[1])
         haids = map(lambda v: v[0], elem[1])
-        mean = sum(values)/len(values)
-        return[[elem[0], mean, haids]]
+        mean = sum(values) / len(values)
+        return [[elem[0], mean, haids]]
 
 
 class ItemsProcess(beam.DoFn):
@@ -93,7 +150,6 @@ class ItemsProcess(beam.DoFn):
                     yield (haid, items_mean)
 
 
-
 class LosProcess(beam.DoFn):
     MS_TO_MIN = 1.0 / 3600.0
 
@@ -104,8 +160,20 @@ class LosProcess(beam.DoFn):
         return [(elem[0], (max(dates_array) - min(dates_array)) * self.MS_TO_MIN)]
 
 
+def normalize_inputs(inputs):
+    dict_ret = {}
+    for val in FEATURE_SPEC.keys():
+        if val != 'LoS':
+            dict_ret[val] = tft.scale_to_0_1(inputs[val])
+
+    return dict_ret
+
+
 def run(
+        input_feature_spec,
+        labels,
         input_file,
+        feature_scaling=None,
         eval_percent=20.0,
         beam_options=None,
         work_dir=None):
@@ -115,13 +183,21 @@ def run(
     a training and evaluation dataset.
     """
 
-    #     # Type checking
-    # if not isinstance(labels, list):
-    #     raise ValueError(
-    #         '`labels` must be list(str). '
-    #         'Given: {} {}'.format(labels, type(labels)))
-    #
+    # Populate optional arguments
+    if not feature_scaling:
+        feature_scaling = lambda inputs: inputs
 
+    # Type checking
+    if not isinstance(labels, list):
+        raise ValueError(
+            '`labels` must be list(str). '
+            'Given: {} {}'.format(labels, type(labels)))
+
+    if not callable(feature_scaling):
+        raise ValueError(
+            '`feature_scaling` must be callable. '
+            'Given: {} {}'.format(feature_scaling,
+                                  type(feature_scaling)))
 
     if beam_options and not isinstance(beam_options, PipelineOptions):
         raise ValueError(
@@ -168,7 +244,7 @@ def run(
                       | 'Calc Items Mean' >> beam.ParDo(MeanProcess())
                       | 'Make List' >> beam.combiners.ToList()
                       | 'Add key Items ' >> beam.ParDo(ItemsProcess())
-                      #| 'Print Items Mean' >> beam.ParDo(CollectionPrinter())
+                      # | 'Print Items Mean' >> beam.ParDo(CollectionPrinter())
                       )
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()
@@ -176,27 +252,75 @@ def run(
                         )
 
         dataset = ({'data': filtered_data,
-                        'items': items_mean,
-                        'los': los_per_haid}
+                    'items': items_mean,
+                    'los': los_per_haid}
                    | 'Create Base Schema' >> beam.CoGroupByKey()
                    | 'Update Schema' >> beam.ParDo(UpdateSchema())
-                   | 'P Schema' >> beam.ParDo(CollectionPrinter())
-
+                   | 'Validate inputs' >> beam.ParDo(ValidateInputData(
+                    input_feature_spec))
                    )
+        # [END feature_extraction]
 
-        #[END feature_extraction]
+        input_metadata = dataset_metadata.DatasetMetadata(
+            dataset_schema.from_feature_spec(input_feature_spec))
 
+        dataset_and_metadata, transform_fn = (
+                (dataset, input_metadata)
+                | 'Feature scaling' >> beam_impl.AnalyzeAndTransformDataset(feature_scaling))
+        dataset, metadata = dataset_and_metadata
+        # [END _analyze_and_transform_dataset]
 
         # [START_split_to_train_and_eval_datasets]
         # Split the dataset into a training set and an evaluation set
-        # assert 0 < eval_percent < 100, 'eval_percent must in the range (0-100)'
-        # train_dataset, eval_dataset = (
-        #         dataset
-        #         | 'Split dataset' >> beam.Partition(
-        #     lambda elem, _: int(random.uniform(0, 100) < eval_percent), 2)
-        # )
+        assert 0 < eval_percent < 100, 'eval_percent must in the range (0-100)'
+        train_dataset, eval_dataset = (
+                dataset
+                | 'Split dataset' >> beam.Partition(
+            lambda elem, _: int(random.uniform(0, 100) < eval_percent), 2)
+        )
         # [END split_to_train_and_eval_datasets]
 
+        # [START write_tfrecords]
+        # # Write the datasets as TFRecords
+        coder = example_proto_coder.ExampleProtoCoder(metadata.schema)
+
+        train_dataset_prefix = os.path.join(train_dataset_dir, 'part')
+        _ = (
+                train_dataset
+                | 'Write train dataset' >> tfrecordio.WriteToTFRecord(train_dataset_prefix, coder))
+
+        eval_dataset_prefix = os.path.join(eval_dataset_dir, 'part')
+        _ = (
+                eval_dataset
+                | 'Write eval dataset' >> tfrecordio.WriteToTFRecord(eval_dataset_prefix, coder))
+
+        # Write the transform_fn
+        _ = (
+                transform_fn
+                | 'Write transformFn' >> transform_fn_io.WriteTransformFn(work_dir))
+        # [END write_tfrecords]
+
+        return PreprocessData(
+            input_feature_spec,
+            labels,
+            train_dataset_prefix + '*',
+            eval_dataset_prefix + '*')
+
+
+FEATURE_SPEC = {
+    # Features (inputs)
+    'CGID': tf.io.FixedLenFeature([], tf.int64),
+
+    # Labels (outputs/predictions)
+    'LoS': tf.io.FixedLenFeature([], tf.float32),
+}
+
+LABELS = ['LoS']
+
+
+def update_feature_spec(specs):
+    for i in range(int(specs)):
+        FEATURE_SPEC['item' + str(i)] = tf.io.FixedLenFeature([], tf.float32)
 
 
 if __name__ == '__main__':
@@ -212,11 +336,15 @@ if __name__ == '__main__':
                         help='Number of features to be considered')
 
     args, pipeline_args = parser.parse_known_args()
+    update_feature_spec(args.total_items)
 
     beam_options = PipelineOptions(pipeline_args, save_main_session=True)
     preprocess_data = run(
+        FEATURE_SPEC,
+        LABELS,
         args.input_file,
+        feature_scaling=normalize_inputs,
         beam_options=beam_options,
         work_dir=args.work_dir)
 
-    # dump(preprocess_data, os.path.join(args.work_dir, 'PreprocessData'))
+    dump(preprocess_data, os.path.join(args.work_dir, 'PreprocessData'))
