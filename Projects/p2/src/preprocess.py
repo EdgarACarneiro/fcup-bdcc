@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import argparse
 import math
+import random
 import tempfile
 import os
 import apache_beam as beam
@@ -11,7 +12,6 @@ import tensorflow_transform.beam.impl as beam_impl
 from dateutil.parser import parse
 import time
 
-NORMALIZE_CONSTANT = 500
 
 class CollectionPrinter(beam.DoFn):
     """Helper DoFn able to print a PCollection contents"""
@@ -23,7 +23,7 @@ class CollectionPrinter(beam.DoFn):
 class UpdateSchema(beam.DoFn):
 
     def process(self, elem):
-        items = elem[1]['items']
+        items = elem[1]['items'][0]
         data = elem[1]['data']
         los = elem[1]['los']
         all_items_set = map(lambda x: x[0], items)
@@ -34,14 +34,12 @@ class UpdateSchema(beam.DoFn):
         for idx, item in enumerate(all_items_set):
             try:
                 i = items_measured.index(item)
-                entry.append(data[i][9])
+                entry.append(float(data[i][9]))
             except:
-                entry.append(items[idx][1])
+                entry.append(float(items[idx][1]))
 
         entry.append(los[0])
-        entry = [x / NORMALIZE_CONSTANT for x in entry]
         entry.append(overall_cgid)
-
         return [entry]
 
 
@@ -74,17 +72,26 @@ class ValidRows(beam.DoFn):
             yield (t[0], t[1] != u'')
 
 
-class ItemsProcess(beam.DoFn):
+class MeanProcess(beam.DoFn):
 
     def process(self, elem):
         values = map(lambda v: v[1], elem[1])
+        haids = map(lambda v: v[0], elem[1])
         mean = sum(values)/len(values)
-        haid_item_set = set()
-        for tup in elem[1]:
-            haid_item = (tup[0], elem[0])
-            if haid_item not in haid_item_set:
-                haid_item_set.add(haid_item)
-                yield (tup[0], (elem[0], mean))
+        return[[elem[0], mean, haids]]
+
+
+class ItemsProcess(beam.DoFn):
+
+    def process(self, elem):
+        items_mean = map(lambda x: (x[0], x[1]), elem)
+        haids = set()
+        for val in elem:
+            for haid in val[2]:
+                if haid not in haids:
+                    haids.add(haid)
+                    yield (haid, items_mean)
+
 
 
 class LosProcess(beam.DoFn):
@@ -156,22 +163,40 @@ def run(
                          | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
 
         items_mean = (filtered_data
-                      | 'Split Data' >> beam.Map(lambda event: (int(event[1][4]), (event[1][2], float(event[1][9]))))
+                      | 'Split Data' >> beam.Map(lambda event: (event[1][4], (event[1][2], float(event[1][9]))))
                       | 'Group by Item' >> beam.GroupByKey()
-                      | 'Calc Items Mean' >> beam.ParDo(ItemsProcess()))
+                      | 'Calc Items Mean' >> beam.ParDo(MeanProcess())
+                      | 'Make List' >> beam.combiners.ToList()
+                      | 'Add key Items ' >> beam.ParDo(ItemsProcess())
+                      #| 'Print Items Mean' >> beam.ParDo(CollectionPrinter())
+                      )
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()
-                        | 'Calculate Los' >> beam.ParDo(LosProcess()))
+                        | 'Calculate Los' >> beam.ParDo(LosProcess())
+                        )
 
-        base_schema = ({'data': filtered_data,
+        dataset = ({'data': filtered_data,
                         'items': items_mean,
                         'los': los_per_haid}
-                       | 'Create Base Schema' >> beam.CoGroupByKey()
-                       | 'Update Schema' >> beam.ParDo(UpdateSchema())
-                       )
+                   | 'Create Base Schema' >> beam.CoGroupByKey()
+                   | 'Update Schema' >> beam.ParDo(UpdateSchema())
+                   | 'P Schema' >> beam.ParDo(CollectionPrinter())
+
+                   )
+
+        #[END feature_extraction]
 
 
-        # [END feature_extraction]
+        # [START_split_to_train_and_eval_datasets]
+        # Split the dataset into a training set and an evaluation set
+        # assert 0 < eval_percent < 100, 'eval_percent must in the range (0-100)'
+        # train_dataset, eval_dataset = (
+        #         dataset
+        #         | 'Split dataset' >> beam.Partition(
+        #     lambda elem, _: int(random.uniform(0, 100) < eval_percent), 2)
+        # )
+        # [END split_to_train_and_eval_datasets]
+
 
 
 if __name__ == '__main__':
@@ -183,8 +208,8 @@ if __name__ == '__main__':
                         help='Input csv file containing the data')
     parser.add_argument('-o', '--work_dir', default='tmp',
                         help='Output folder for the generated plots')
-    # parser.add_argument('-p', '--total_items', required=True,
-    #                     help='Number of features to be considered')
+    parser.add_argument('-p', '--total_items', required=True,
+                        help='Number of features to be considered')
 
     args, pipeline_args = parser.parse_known_args()
 
