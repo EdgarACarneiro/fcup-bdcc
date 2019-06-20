@@ -60,7 +60,6 @@ class StackedDailyItems(AbstractExtractor):
         final_items += [['Others', others_agg]]
 
         # Final items
-
         df = pd.DataFrame(
             columns=["Items"] + [str(i) for i in range(0, 24)],
             data=[[item[0]] + item[1] for item in final_items]
@@ -69,16 +68,9 @@ class StackedDailyItems(AbstractExtractor):
         sns.set()
         df.set_index('Items').T.plot(kind='bar', stacked=True,
                                      colormap=ListedColormap(sns.color_palette("GnBu", 10)))
-        plt.legend(loc='upper right')
         plt.xlabel('Hour')
 
         plt.title('Items Hours Intake', loc='left',
                   fontsize=12, fontweight=0, color='black')
 
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
-
-    def plot(self, p_collection, output_folder):
-        p_collection | \
-            '%s: Output data as a plot' % self.name >> beam.ParDo(
-                lambda data: self.output_data(data, output_folder)
-            )
+        self.legend_and_save(output_folder)

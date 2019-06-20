@@ -16,7 +16,7 @@ class CGItemQuantity(AbstractExtractor):
 
         self.process = \
             lambda el: [(
-                int(el[5]),
+                el[5],
                 el[2],
                 float(el[7])
             )]
@@ -31,8 +31,7 @@ class CGItemQuantity(AbstractExtractor):
         # Getting max and min to find round base
         max_v = max(data, key=lambda el: el[2])[2]
         min_v = min(data, key=lambda el: el[2])[2]
-        round_base = round((max(data, key=lambda el: el[2])[2] -
-                            min(data, key=lambda el: el[2])[2]) / 6)
+        round_base = round((max_v - min_v) / 6)
 
         df = pd.DataFrame(
             columns=["Care Giver", "Item", "Quantity"],
@@ -43,21 +42,14 @@ class CGItemQuantity(AbstractExtractor):
                      data)
         )
 
-        sns.cubehelix_palette(dark=.3, light=.8, as_cmap=True)
-        sns.scatterplot(x="Item", y="Care Giver",
-                        hue="Quantity", size="Quantity",
-                        sizes=(50, 300), hue_norm=(min_v, max_v),
-                        legend="full", data=df)
+        sns.cubehelix_palette(dark=.4, light=.9, as_cmap=True)
+        ax = sns.scatterplot(x="Item", y="Care Giver",
+                             hue="Quantity", size="Quantity",
+                             sizes=(50, 300), hue_norm=(min_v, max_v),
+                             legend="full", data=df)
 
-        plt.legend(loc='upper right')
         plt.title('CGI - Item - Quantity Relation', loc='left',
                   fontsize=12, fontweight=0, color='black')
-        plt.xticks(rotation='vertical')
+        plt.xticks(rotation='vertical', fontsize=5)
 
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
-
-    def plot(self, p_collection, output_folder):
-        p_collection | \
-            '%s: Output data as a plot' % self.name >> beam.ParDo(
-                lambda data: self.output_data(data, output_folder)
-            )
+        self.legend_and_save(output_folder)

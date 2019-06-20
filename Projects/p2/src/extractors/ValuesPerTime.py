@@ -23,6 +23,8 @@ class ValuesPerTime(AbstractExtractor):
         return (dt - datetime(1970, 1, 1)).total_seconds()
 
     def output_data(self, data_list, output_folder):
+        self.resetPlotting()
+
         df = pd.DataFrame(columns=['datetime', 'value', 'measurement'])
 
         # Populating Dataframe
@@ -37,8 +39,6 @@ class ValuesPerTime(AbstractExtractor):
                 ignore_index=True
             )
         df = df.sort_values('datetime', ascending=True)
-
-        plt.clf()
 
         # Plotting
         ax = sns.scatterplot(x='datetime', y='value',
@@ -57,8 +57,10 @@ class ValuesPerTime(AbstractExtractor):
         plt.xlabel('ChartTime')
         plt.xticks(rotation='vertical')
         plt.tight_layout()
+        L = plt.legend()
+        print(L.get_texts())
 
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
+        self.legend_and_save(output_folder)
 
     def plot(self, p_collection, output_folder):
         p_collection | \
