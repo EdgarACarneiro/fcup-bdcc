@@ -303,3 +303,33 @@ above MapReduce when:
 * The data is structured and will continue to be so for the foreseeable future.
 * The data set is large and is expected a large amount of complex querying.
 
+> Multi-Relational Data
+
+Most machine learning methods build models based on a
+ 2-dimensional table, where, usually, rows are instances and
+ columns are variables
+ 
+Relations
+may exist among instances, not only among
+variables
+
+Data may need to be preprocessed:  often big/full join of
+multiple tables but that:
+* may introduce redundancy or bias
+
+* consumes space
+
+Ideal systems must deal with:
+* uncertainty;
+* multiple relations;
+* multiple modalities;
+* streamed data;
+* explain the model;
+* consuming a minimum number of resources.
+
+
+> Explanatory Models:
+* Rules (multi-relational if the representation is in first-order logic)
+* Decision Trees (not multi-relational)
+* Bayesian Networks (not multi-relational)
+
