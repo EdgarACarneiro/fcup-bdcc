@@ -16,17 +16,11 @@ class ItemsHistogram(AbstractExtractor):
         self.resetPlotting()
 
         plt.hist(items, alpha=0.8, bins='rice', label='Items', rwidth=0.8)
-        plt.legend(loc='upper right')
         plt.xticks(rotation=90, fontsize=5)
 
         plt.title('Items Histogram', loc='left',
                   fontsize=12, fontweight=0, color='black')
         plt.xlabel('Item ID')
+        plt.ylabel('Administration Frequency')
 
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
-
-    def plot(self, p_collection, output_folder):
-        p_collection | \
-            '%s: Output data as a plot' % self.name >> beam.ParDo(
-                lambda data: self.output_data(data, output_folder)
-            )
+        self.legend_and_save(output_folder)

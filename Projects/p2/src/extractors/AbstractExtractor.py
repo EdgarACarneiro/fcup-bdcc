@@ -12,7 +12,7 @@ class AbstractExtractor:
         """Specific class settings, such as the processing,
         should be defined here"""
         self.name = name
-        self.process = None  # To be overriden
+        self.process = None  # To be overridden
 
     def collection_to_list(self, p_collection):
         """Transform a collection into a list"""
@@ -42,18 +42,25 @@ class AbstractExtractor:
         )
 
     def resetPlotting(self):
+        """Reset plotting, and prepare for a new plot"""
         plt.clf()
         plt.style.use('seaborn')
 
+    def legend_and_save(self, output_folder):
+        """Insert the default legend in the plot and save the plot"""
+        plt.legend(loc='upper right', frameon=True,
+                   facecolor='white', framealpha=0.6)
+        plt.savefig('%s/%s.png' % (output_folder, self.name))
+
     @abstractmethod
-    def plot(self, p_collection, output_folder):
+    def output_data(self, p_collection, output_folder):
         """Specific class Method to transform the previously
         filtered data in human knowledge"""
 
     def extract(self, p_collection, output_folder):
         """Converts the given PCollection into human understandable data
         in a visual form (plots), using the previously defined process function"""
-        self.plot(
-            self.processor(p_collection),
-            output_folder
+        self.processor(p_collection) | \
+            '%s: Output data as a plot' % self.name >> beam.ParDo(
+                lambda data: self.output_data(data, output_folder)
         )
