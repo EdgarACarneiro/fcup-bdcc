@@ -44,13 +44,7 @@ class LoSHistogram(AbstractExtractor):
 
         sns.distplot(haids, hist=True, bins='rice',
                      label='LoS', kde=False, rug=True)
-        plt.legend(loc='upper right')
         plt.xlabel('time (in mins)')
+        plt.ylabel('Frequency')
 
-        plt.savefig('%s/%s.png' % (output_folder, self.name))
-
-    def plot(self, p_collection, output_folder):
-        p_collection | \
-            '%s: Output data as a plot' % self.name >> beam.ParDo(
-                lambda data: self.output_data(data, output_folder)
-            )
+        self.legend_and_save(output_folder)
