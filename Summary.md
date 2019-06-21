@@ -274,3 +274,32 @@ that require a full pass over the training dataset.
 * __Tensroflow Estimators__: base themselves on the Estimator class, which wraps a model which is specified by a
 model function, which, given inputs and a number of other parameters, returns the operations necessary to
 perform training, evaluation, or predictions.
+
+> Map Reduce vs Parallel DBMS
+
+>Advantages of map-reduce over parallel and distributed databases:
+* __Inferior data loading time__ since there isn't any kind of preprocessing of the data, whilst there is on
+parallel and distributed databases;
+* __More fault-tolerant__ then its counterpart
+* __Open-source implementations__ while the major set of parallel and distributed databases are very
+    expensive;
+* __No schema is enforced__ as the data does not need to follow any kind of schema which can be good in
+  cases of semi-structured data.
+* __Allows for more complex data interrogation__ while in parallel and distributed databases the SQL
+    language can be a restriction in the type of queries that can be made.
+* __Excel at complex analytics and ETL (Extract Transform Load) tasks__
+
+>Advantages of map-reduce over parallel and distributed databases:
+* __Use of indexes__ greatly improving query time when compared to the map-reduce approach;
+* __Works with compressed data__, making the nodes access to data faster;
+* __Automatic optimizations in task distribution__ - the system would distrbute tasks in such way that the
+    flux of data between nodes is minimized;
+* __Schema is enforced__ which pushes programmers to a higher, more-productive level of abstraction.
+* __Faster data interrogation__, complex queries in the map-reduce approach are simplified by the usage of
+    the SQL language
+    
+>It's suggested that parallel DBMS should be chosen
+above MapReduce when:
+* The data is structured and will continue to be so for the foreseeable future.
+* The data set is large and is expected a large amount of complex querying.
+
