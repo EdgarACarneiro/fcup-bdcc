@@ -207,7 +207,6 @@ LABELS = ['LoS']
 
 
 def update_feature_spec(specs):
-    print(int(specs))
     for i in range(int(specs)):
         FEATURE_SPEC['item' + str(i)] = tf.io.FixedLenFeature([], tf.float32)
 
