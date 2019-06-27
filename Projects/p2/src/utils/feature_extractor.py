@@ -131,13 +131,12 @@ class SimpleFeatureExtraction(beam.PTransform):
                          | 'Join Datasets' >> beam.CoGroupByKey()
                          | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
 
-        items_mean = (filtered_data
-                      | 'Split Data' >> beam.Map(lambda event: (event[1][4], (event[1][2], float(event[1][9]))))
+        items_mean = (data
+                      | 'Split Data' >> beam.Map(lambda event: (event.split(',')[4], (event.split(',')[2], float(event.split(',')[9]))))
                       | 'Group by Item' >> beam.GroupByKey()
                       | 'Calc Items Mean' >> beam.ParDo(MeanProcess())
                       | 'Make List' >> beam.combiners.ToList()
                       | 'Add key Items ' >> beam.ParDo(ItemsProcess())
-                      # | 'Print Items Mean' >> beam.ParDo(CollectionPrinter())
                       )
         los_per_haid = (filtered_data
                         | 'Grouping by HAID' >> beam.GroupByKey()

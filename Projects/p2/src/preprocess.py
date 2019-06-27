@@ -144,8 +144,6 @@ def run(input_feature_spec,
         dataset = (
                 p
                 | 'Feature extraction' >> feature_extraction
-                # [END dataflow_feature_extraction]
-                # [START dataflow_validate_inputs]
                 | 'Validate inputs' >> beam.ParDo(ValidateInputData(input_feature_spec)))
         # [END feature_extraction]
 
