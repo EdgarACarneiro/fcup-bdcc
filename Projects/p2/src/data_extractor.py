@@ -3,10 +3,6 @@ from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
 
 
-def cenas(event):
-    print(event)
-
-
 def run(args):
     # Creating and opening the pipeline
     options = PipelineOptions()
