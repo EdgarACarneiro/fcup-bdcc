@@ -201,13 +201,15 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    preprocess_data = load(os.path.join(args.work_dir, 'PreprocessData'))
+    # Cross Validation 5 Folds
+    for fold in [0, 1, 2, 3, 4]:
+        preprocess_data = load(os.path.join(args.work_dir, 'PreprocessData_fold%i' %fold))
 
-    train_and_evaluate(
-        args.work_dir,
-        preprocess_data.input_feature_spec,
-        preprocess_data.labels,
-        preprocess_data.train_files_pattern,
-        preprocess_data.eval_files_pattern,
-        batch_size=args.batch_size,
-        train_max_steps=args.train_max_steps)
+        train_and_evaluate(
+            args.work_dir,
+            preprocess_data.input_feature_spec,
+            preprocess_data.labels,
+            preprocess_data.train_files_pattern,
+            preprocess_data.eval_files_pattern,
+            batch_size=args.batch_size,
+            train_max_steps=args.train_max_steps)

@@ -57,8 +57,10 @@ class CollectionPrinter(beam.DoFn):
     def process(self, elem):
         print(elem)
 
+
 class ValidateInputData(beam.DoFn):
     """This DoFn validates that every element matches the metadata given."""
+
     def __init__(self, feature_spec):
         super(ValidateInputData, self).__init__()
         self.feature_names = set(feature_spec.keys())
@@ -75,6 +77,7 @@ class ValidateInputData(beam.DoFn):
                 'Given: {}; Features: {}'.format(
                     list(elem_features), list(self.feature_names)))
         yield elem
+
 
 def normalize_inputs(inputs):
     dict_ret = {'LoS': inputs['LoS']}
@@ -100,7 +103,7 @@ def run(input_feature_spec,
 
     # Populate optional arguments
     if not feature_scaling:
-        feature_scaling = lambda inputs: inputs
+        def feature_scaling(inputs): return inputs
 
     # Type checking
     if not isinstance(labels, list):
@@ -142,55 +145,72 @@ def run(input_feature_spec,
 
         # [START feature_extraction]
         dataset = (
-                p
-                | 'Feature extraction' >> feature_extraction
-                | 'Validate inputs' >> beam.ParDo(ValidateInputData(input_feature_spec)))
+            p
+            | 'Feature extraction' >> feature_extraction
+            | 'Validate inputs' >> beam.ParDo(ValidateInputData(input_feature_spec)))
         # [END feature_extraction]
 
         input_metadata = dataset_metadata.DatasetMetadata(
             dataset_schema.from_feature_spec(input_feature_spec))
 
         dataset_and_metadata, transform_fn = (
-                (dataset, input_metadata)
-                | 'Feature scaling' >> beam_impl.AnalyzeAndTransformDataset(feature_scaling))
+            (dataset, input_metadata)
+            | 'Feature scaling' >> beam_impl.AnalyzeAndTransformDataset(feature_scaling))
         dataset, metadata = dataset_and_metadata
         # [END _analyze_and_transform_dataset]
 
-        # [START_split_to_train_and_eval_datasets]
-        # Split the dataset into a training set and an evaluation set
-        assert 0 < eval_percent < 100, 'eval_percent must in the range (0-100)'
-        train_dataset, eval_dataset = (
-                dataset
-                | 'Split dataset' >> beam.Partition(
-            lambda elem, _: int(random.uniform(0, 100) < eval_percent), 2)
+        # [START_split_to_5_folds]
+        # Split into 5 folds
+        fold1, fold2, fold3, fold4, fold5 = (
+            dataset
+            | 'Split dataset in 5 folds' >> beam.Partition(
+                lambda elem, _: int(random.uniform(0, 5)), 5)
         )
-        # [END split_to_train_and_eval_datasets]
+        # [START_split_to_5_folds]
 
-        # [START write_tfrecords]
-        # # Write the datasets as TFRecords
-        coder = example_proto_coder.ExampleProtoCoder(metadata.schema)
+        results = []
+        folds = [fold1, fold2, fold3, fold4, fold5]
 
-        train_dataset_prefix = os.path.join(train_dataset_dir, 'part')
-        _ = (
+        for fold_idx in range(len(folds)):
+            # All folds except the one being used as test
+            train_folds = [fold for fold in folds if fold != folds[fold_idx]]
+
+            # Train & Test Datasets
+            train_dataset = (
+                train_folds
+                | 'Join folds into train_dataset for fold%i' % fold_idx >> beam.Flatten())
+            eval_dataset = folds[fold_idx]
+
+            # [START write_tfrecords]
+            # # Write the datasets as TFRecords
+            coder = example_proto_coder.ExampleProtoCoder(metadata.schema)
+
+            train_dataset_prefix = os.path.join(train_dataset_dir, 'fold%i' % fold_idx)
+            _ = (
                 train_dataset
-                | 'Write train dataset' >> tfrecordio.WriteToTFRecord(train_dataset_prefix, coder))
+                | 'Write train dataset for fold%i' % fold_idx >> tfrecordio.WriteToTFRecord(train_dataset_prefix, coder))
 
-        eval_dataset_prefix = os.path.join(eval_dataset_dir, 'part')
-        _ = (
+            eval_dataset_prefix = os.path.join(eval_dataset_dir, 'fold%i' % fold_idx)
+            _ = (
                 eval_dataset
-                | 'Write eval dataset' >> tfrecordio.WriteToTFRecord(eval_dataset_prefix, coder))
+                | 'Write eval dataset for fold%i' % fold_idx >> tfrecordio.WriteToTFRecord(eval_dataset_prefix, coder))
 
-        # Write the transform_fn
-        _ = (
+            # Write the transform_fn
+            _ = (
                 transform_fn
-                | 'Write transformFn' >> transform_fn_io.WriteTransformFn(work_dir))
-        # [END write_tfrecords]
+                | 'Write transformFn for fold%i' % fold_idx >> transform_fn_io.WriteTransformFn(work_dir))
+            # [END write_tfrecords]
 
-        return PreprocessData(
-            input_feature_spec,
-            labels,
-            train_dataset_prefix + '*',
-            eval_dataset_prefix + '*')
+            results.append(
+                PreprocessData(
+                    input_feature_spec,
+                    labels,
+                    train_dataset_prefix + '*',
+                    eval_dataset_prefix + '*')
+            )
+            print("FOLD%i" % fold_idx)
+
+        return results
 
 
 FEATURE_SPEC = {
@@ -227,7 +247,7 @@ if __name__ == '__main__':
             update_feature_spec(line)
 
     beam_options = PipelineOptions(pipeline_args, save_main_session=True)
-    preprocess_data = run(
+    preprocess_data_folds = run(
         FEATURE_SPEC,
         LABELS,
         utils.SimpleFeatureExtraction(args.input_file),
@@ -235,4 +255,5 @@ if __name__ == '__main__':
         beam_options=beam_options,
         work_dir=args.work_dir)
 
-    dump(preprocess_data, os.path.join(args.work_dir, 'PreprocessData'))
+    for idx, preprocess_fold in enumerate(preprocess_data_folds):
+        dump(preprocess_fold, os.path.join(args.work_dir, 'PreprocessData_fold%i' % idx))
