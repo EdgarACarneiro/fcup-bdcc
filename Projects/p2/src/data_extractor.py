@@ -1,24 +1,25 @@
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
 import argparse
+import utils
+
 
 
 def run(args):
     # Creating and opening the pipeline
     options = PipelineOptions()
     with beam.Pipeline(options=options) as p:
+        filtered_data = utils.filter_data(p, args.input_file)
 
         _ = (
-            p |
-            'Reading Events' >> beam.io.ReadFromText(
-                args.input_file, skip_header_lines=1) |
-            'Get all Items' >> beam.Map(
-                lambda event: (event.split(",")[4], 0)) |
-            'Group by Item' >> beam.GroupByKey() |
-            'Count number of Items' >> beam.combiners.Count.Globally() |
-            'Write to output file' >> beam.io.WriteToText(
-                '%s/itemsCount.txt' % args.work_dir,
-                shard_name_template='')
+                filtered_data |
+                'Get all Items' >> beam.Map(
+            lambda event: (event[1][4], 0)) |
+                'Group by Item' >> beam.GroupByKey() |
+                'Count number of Items' >> beam.combiners.Count.Globally() |
+                'Write to output file' >> beam.io.WriteToText(
+            '%s/itemsCount.txt' % args.work_dir,
+            shard_name_template='')
         )
 
 

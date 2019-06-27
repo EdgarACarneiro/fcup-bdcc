@@ -97,6 +97,26 @@ class LosProcess(beam.DoFn):
         return [(elem[0], (max(dates_array) - min(dates_array)) * self.MS_TO_MIN)]
 
 
+def filter_data(p, source):
+    data = (
+            p
+            | 'Read events' >> beam.io.ReadFromText(source, skip_header_lines=1)
+    )
+    filter_rows = (data
+                   | 'Get columns of interest' >> beam.FlatMap(lambda event: [(event.split(',')[1],
+                                                                               event.split(','))])
+                   | 'Grouping by Patient' >> beam.GroupByKey()
+                   | 'Get valid Rows' >> beam.ParDo(ValidRows())
+                   )
+
+    data_tuple = (data | 'Make Tuple' >> beam.FlatMap(lambda event: [(event.split(',')[0], event.split(','))]))
+
+    filtered_data = ({'data': data_tuple,
+                      'valid': filter_rows}
+                     | 'Join Datasets' >> beam.CoGroupByKey()
+                     | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
+
+    return filtered_data
 
 # [START dataflow_simple_feature_extraction]
 class SimpleFeatureExtraction(beam.PTransform):
@@ -113,26 +133,11 @@ class SimpleFeatureExtraction(beam.PTransform):
         self.source = source
 
     def expand(self, p):
-        data = (
-                p
-                | 'Read events' >> beam.io.ReadFromText(self.source, skip_header_lines=1)
-        )
-        filter_rows = (data
-                       | 'Get columns of interest' >> beam.FlatMap(lambda event: [(event.split(',')[1],
-                                                                                   event.split(','))])
-                       | 'Grouping by Patient' >> beam.GroupByKey()
-                       | 'Get valid Rows' >> beam.ParDo(ValidRows())
-                       )
 
-        data_tuple = (data | 'Make Tuple' >> beam.FlatMap(lambda event: [(event.split(',')[0], event.split(','))]))
+        filtered_data = filter_data(p, self.source)
 
-        filtered_data = ({'data': data_tuple,
-                          'valid': filter_rows}
-                         | 'Join Datasets' >> beam.CoGroupByKey()
-                         | 'Remove Non-Valid Rows' >> beam.ParDo(FilterRows()))
-
-        items_mean = (data
-                      | 'Split Data' >> beam.Map(lambda event: (event.split(',')[4], (event.split(',')[2], float(event.split(',')[9]))))
+        items_mean = (filtered_data
+                      | 'Split Data' >> beam.Map(lambda event: (event[1][4], (event[1][2], float(event[1][9]))))
                       | 'Group by Item' >> beam.GroupByKey()
                       | 'Calc Items Mean' >> beam.ParDo(MeanProcess())
                       | 'Make List' >> beam.combiners.ToList()
