@@ -125,8 +125,8 @@ Notice that actions such as take force __lazy__ transformations to take place.
 * `filter(condition)`: filter rows satisfying the given condition.
 * `sort(row_to_sort)`: sort the dataframe by the given row.
 
-* __Narrows transformations__, such as _filter_, are a one-to-one transformation and therefore do not require Spark to move around data between workers.
-* __Wide transformations__, such as _sort_, force data to be collected from many input partitions to derive new output partitions (many-to-many).
+* __Narrows transformations__, such as _Filter, Map, FlatMap, Sample, Union, MapPartition_, are a one-to-one transformation and therefore do not require Spark to move around data between workers.
+* __Wide transformations__, such as _Sort, Intersection, Distinct, ReduceByKey, GroupByKey, Join, Cartesian, Repartition, Coalesce_, force data to be collected from many input partitions to derive new output partitions (many-to-many).
 
 `Filter` and `sort` example:
 ```python
@@ -333,3 +333,8 @@ Ideal systems must deal with:
 * Decision Trees (not multi-relational)
 * Bayesian Networks (not multi-relational)
 
+
+> Big Data on GPGPUs
+General Purpose Graphical Processing Units (GPGPUs)
+focus on data-parallel computations rather than
+task-parallelism
