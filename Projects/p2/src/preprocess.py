@@ -85,8 +85,7 @@ def normalize_inputs(inputs):
     return dict_ret
 
 
-def run(
-        input_feature_spec,
+def run(input_feature_spec,
         labels,
         feature_extraction,
         feature_scaling=None,
@@ -208,6 +207,7 @@ LABELS = ['LoS']
 
 
 def update_feature_spec(specs):
+    print(int(specs))
     for i in range(int(specs)):
         FEATURE_SPEC['item' + str(i)] = tf.io.FixedLenFeature([], tf.float32)
 
@@ -220,12 +220,14 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--input_file', required=True,
                         help='Input csv file containing the data')
     parser.add_argument('-w', '--work_dir', default='tmp',
-                        help='Output folder for the generated plots')
-    parser.add_argument('-p', '--total_items', required=True,
-                        help='Number of features to be considered')
+                        help='Output folder preprocessing results')
 
     args, pipeline_args = parser.parse_known_args()
-    update_feature_spec(args.total_items)
+
+    # Reading data from data extraction
+    with open('%s/itemsCount.txt' % args.work_dir) as fd:
+        for line in fd:
+            update_feature_spec(line)
 
     beam_options = PipelineOptions(pipeline_args, save_main_session=True)
     preprocess_data = run(
