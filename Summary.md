@@ -1,4 +1,4 @@
-# Big Data and Cloud Computing Summary
+HDFS architecture# Big Data and Cloud Computing Summary
 
 ## Introduction
 
@@ -125,8 +125,8 @@ Notice that actions such as take force __lazy__ transformations to take place.
 * `filter(condition)`: filter rows satisfying the given condition.
 * `sort(row_to_sort)`: sort the dataframe by the given row.
 
-* __Narrows transformations__, such as _filter_, are a one-to-one transformation and therefore do not require Spark to move around data between workers.
-* __Wide transformations__, such as _sort_, force data to be collected from many input partitions to derive new output partitions (many-to-many).
+* __Narrows transformations__, such as _Filter, Map, FlatMap, Sample, Union, MapPartition_, are a one-to-one transformation and therefore do not require Spark to move around data between workers.
+* __Wide transformations__, such as _Sort, Intersection, Distinct, ReduceByKey, GroupByKey, Join, Cartesian, Repartition, Coalesce_, force data to be collected from many input partitions to derive new output partitions (many-to-many).
 
 `Filter` and `sort` example:
 ```python
@@ -235,3 +235,106 @@ Three type of YARN schedulers:
     * Suitable for shared clusters. Resources may be under-utilized though
 * __Fair Scheduler__: the resources are dynamically balanced/allocated between/to applications, without the need to set a fixed capacity. _(best one)_
     * Dynamic (i.e. preemptive) resource allocation ensures that resources are not under-utilized.
+
+> Google Dataflow vs Dataproc
+* __Google Dataflow__: place to run Apache Beam based jobs, without the need to address the technicalities
+    of running jobs on a cluster (such as work balancing and scaling), since this is automatically done for you.
+    With Google Dataflow you focus on the logical computation rather than how the runner works.
+    Additionally, Dataflow provides base templates that simplify common tasks. Beams has the downside of
+    only supporting Python 2.7.
+    
+* __Dataproc__: provides you with a Hadoop Cluster and access to Apache Hadoop / Spark ecosystem.
+    Indicated when the manual provisioning of clusters is necessary (as seen before, GD does it automatically)
+    OR when there are dependencies to tools belonging to the aforementioned ecosystem.
+    
+
+> Apache BEAM
+
+* __Pipeline__: encapsulates the workflow of your entire data
+                processing tasks from start to finish.
+ 
+* __PCollection__: distributed data set that your Beam
+                   pipeline operates on.
+                
+* __PTransform__: represents a data processing operation, or a
+                  step, in your pipeline
+* __ParDo__: for generic parallel processing, considers each element in the input
+                                              PCollection, performs some processing function (your user
+                                              code) on that element, and emits zero, one, or multiple
+                                              elements to an output PCollection
+* __DoFn__:  applies your logic in each element in the input
+            PCollection and lets you populate the elements of an
+            output PCollection 
+
+> TensorFlow
+
+* __TensorFlow Transformations__: are great for preprocessing input data for TensorFlow, including creating features
+that require a full pass over the training dataset.
+
+* __Tensroflow Estimators__: base themselves on the Estimator class, which wraps a model which is specified by a
+model function, which, given inputs and a number of other parameters, returns the operations necessary to
+perform training, evaluation, or predictions.
+
+> Map Reduce vs Parallel DBMS
+
+>Advantages of map-reduce over parallel and distributed databases:
+* __Inferior data loading time__ since there isn't any kind of preprocessing of the data, whilst there is on
+parallel and distributed databases;
+* __More fault-tolerant__ then its counterpart
+* __Open-source implementations__ while the major set of parallel and distributed databases are very
+    expensive;
+* __No schema is enforced__ as the data does not need to follow any kind of schema which can be good in
+  cases of semi-structured data.
+* __Allows for more complex data interrogation__ while in parallel and distributed databases the SQL
+    language can be a restriction in the type of queries that can be made.
+* __Excel at complex analytics and ETL (Extract Transform Load) tasks__
+
+>Advantages of map-reduce over parallel and distributed databases:
+* __Use of indexes__ greatly improving query time when compared to the map-reduce approach;
+* __Works with compressed data__, making the nodes access to data faster;
+* __Automatic optimizations in task distribution__ - the system would distrbute tasks in such way that the
+    flux of data between nodes is minimized;
+* __Schema is enforced__ which pushes programmers to a higher, more-productive level of abstraction.
+* __Faster data interrogation__, complex queries in the map-reduce approach are simplified by the usage of
+    the SQL language
+    
+>It's suggested that parallel DBMS should be chosen
+above MapReduce when:
+* The data is structured and will continue to be so for the foreseeable future.
+* The data set is large and is expected a large amount of complex querying.
+
+> Multi-Relational Data
+
+Most machine learning methods build models based on a
+ 2-dimensional table, where, usually, rows are instances and
+ columns are variables
+ 
+Relations
+may exist among instances, not only among
+variables
+
+Data may need to be preprocessed:  often big/full join of
+multiple tables but that:
+* may introduce redundancy or bias
+
+* consumes space
+
+Ideal systems must deal with:
+* uncertainty;
+* multiple relations;
+* multiple modalities;
+* streamed data;
+* explain the model;
+* consuming a minimum number of resources.
+
+
+> Explanatory Models:
+* Rules (multi-relational if the representation is in first-order logic)
+* Decision Trees (not multi-relational)
+* Bayesian Networks (not multi-relational)
+
+
+> Big Data on GPGPUs
+General Purpose Graphical Processing Units (GPGPUs)
+focus on data-parallel computations rather than
+task-parallelism
