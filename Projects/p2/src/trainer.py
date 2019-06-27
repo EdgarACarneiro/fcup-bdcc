@@ -154,7 +154,7 @@ if __name__ == '__main__':
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
-        '-o',
+        '-w',
         '--work-dir',
         required=True,
         help='Directory for staging and working files. '
