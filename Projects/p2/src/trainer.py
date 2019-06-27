@@ -17,6 +17,27 @@ def load(filename):
         return pickle.load(f)
 
 
+def root_mean_squared_error(labels, predictions):
+    pred_values = predictions['predictions']
+    return {
+        'rmse': tf.metrics.root_mean_squared_error(labels, pred_values)
+    }
+
+
+def mean_absolute_error(labels, predictions):
+    pred_values = predictions['predictions']
+    return {
+        'mae': tf.metrics.mean_absolute_error(labels, pred_values)
+    }
+
+
+def mean_cosine_distance(labels, predictions):
+    pred_values = predictions['predictions']
+    return {
+        'mcd': tf.metrics.mean_cosine_distance(labels, pred_values, 0)
+    }
+
+
 def _make_train_or_eval_input_fn(feature_spec, labels, file_pattern, batch_size, mode, shuffle=True):
 
 
@@ -125,6 +146,10 @@ def train_and_evaluate(
         hidden_units=[128, 64],
         dropout=0.5,
         config=run_config)
+
+    estimator = tf.contrib.estimator.add_metrics(estimator, root_mean_squared_error)
+    estimator = tf.contrib.estimator.add_metrics(estimator, mean_absolute_error)
+    estimator = tf.contrib.estimator.add_metrics(estimator, mean_cosine_distance)
 
     #Get the transformed feature_spec
     tft_output = tft.TFTransformOutput(work_dir)
