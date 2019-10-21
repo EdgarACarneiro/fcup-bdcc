@@ -9,10 +9,10 @@ Projects developed for 'Big Data & Cloud Computing', a first year subject of the
 | #2 | Write Pyhon classes capable of manipulate datasets and output human knowledge as well as a method of predicting next results. | [R2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Projects/p2/docs/Report.pdf) | [F2](https://github.com/EdgarACarneiro/fcup-bdcc/tree/master/Projects/p2)| 19 | 
 
 ## Assignments
-| Assignments| Assignment questions | Answers | Grade |
-| :---: | :---: | :---: | :---: |
-| #1 | [Aq1](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Slide14-Questions.pdf)|[A1](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Slide14-Questions.md)| 20 | 
-| #2 | [Aq2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Worksheet%231.pdf) | [A2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Worksheet%231.md)| 18 | 
+| Assignments| Assignment questions| Grade |
+| :---: | :---: | :---: |
+| #1 | [Aq1](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Slide14-Questions.pdf)| 20 | 
+| #2 | [Aq2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Homework/Worksheet%231.pdf) | 18 | 
 
 ___
 ## Summary Content
