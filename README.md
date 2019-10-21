@@ -6,7 +6,7 @@ Projects developed for 'Big Data & Cloud Computing', a first year subject of the
 | Projects| Theme | Report | Folder | Grade |
 | :---: | :---: | :---: | :---: | :---: |
 | #1 | Write Python functions involving these datasets and the use of the TF-IDF and Jaccard. |[R1](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Projects/p1/docs/BDCCp1.pdf)|[F1](https://github.com/EdgarACarneiro/fcup-bdcc/tree/master/Projects/p1)| 19 | 
-| #2 | Write Pyhon classes capable of manipulate datasets and output human knowledge as well as a method of predicting next results. | [R2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Projects/p2/docs/Report.pdf) | [F2](https://github.com/EdgarACarneiro/fcup-bdcc/tree/master/Projects/p2)| 19 | 
+| #2 | Write Pyhon classes capable of manipulate datasets and output human knowledge, concerning entries on an hospital, as well as a method of predicting next patients waiting time. | [R2](https://github.com/EdgarACarneiro/fcup-bdcc/blob/master/Projects/p2/docs/Report.pdf) | [F2](https://github.com/EdgarACarneiro/fcup-bdcc/tree/master/Projects/p2)| 19 | 
 
 ## Assignments
 | Assignments| Assignment questions| Grade |
@@ -16,7 +16,7 @@ Projects developed for 'Big Data & Cloud Computing', a first year subject of the
 
 ___
 ## Summary Content
-A Summary was developed giving an introduction to:
+While studying for the exam, a Summary was developed containing the lectured material. This includes an introduction to:
 + **Cloud Computing – Architecture and Services**
 + **MapReduce** 
 + **PySpark - RDDs**  
@@ -30,3 +30,4 @@ The Summary can be checked [here](https://github.com/EdgarACarneiro/fcup-bdcc/bl
 ### Author
 
 + [EdgarACarneiro](https://github.com/EdgarACarneiro)
++ [Afonso Pinto](https://github.com/afonsobspinto)
