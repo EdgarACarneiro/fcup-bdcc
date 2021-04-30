@@ -67,5 +67,5 @@ tensorflow==1.13.1
 tensorflow-transform==0.13.0
 termcolor==1.1.0
 typing==3.6.6
-urllib3==1.25.3
+urllib3==1.25.8
 Werkzeug==0.15.4
